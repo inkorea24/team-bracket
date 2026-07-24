@@ -1,0 +1,2430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>팀나누기 & 대진표</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="팀나누기">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<style>
+  :root {
+    --accent: #2563eb;
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: clamp(16px, 4vmin, 28px); }
+  h1 { font-size: clamp(20px, 5vmin, 26px); text-align: center; margin: 8px 0 4px; }
+  .subtitle { text-align: center; color: var(--muted); font-size: clamp(12px, 3vmin, 14px); margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: clamp(14px, 3.5vmin, 20px); margin-bottom: 16px; }
+  .card h2 { font-size: clamp(15px, 3.6vmin, 17px); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+
+  .sport-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sport-btn {
+    background: #0b1220; border: 1px solid var(--border); border-radius: 12px;
+    color: var(--text); padding: 12px 6px; font-size: clamp(12px, 3vmin, 13px);
+    cursor: pointer; text-align: center; line-height: 1.4;
+  }
+  .sport-btn .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+  .sport-btn.active { border-color: var(--accent); background: rgba(37,99,235,0.18); }
+  .sport-btn .team-size-tag { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .row label { font-size: clamp(13px, 3.2vmin, 14px); color: var(--muted); white-space: nowrap; }
+  .row input[type="number"] {
+    width: 70px; background: #0b1220; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 8px 10px; font-size: 14px;
+  }
+
+  textarea {
+    width: 100%; min-height: 120px; background: #0b1220; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); padding: 10px 12px;
+    font-size: clamp(14px, 3.4vmin, 16px); resize: vertical; font-family: inherit;
+  }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+  .seg { display: flex; background: #0b1220; border-radius: 999px; padding: 3px; gap: 3px; }
+  .seg button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 8px 12px; border-radius: 999px; font-size: clamp(12px, 3vmin, 13px); font-weight: 700; cursor: pointer; }
+  .seg button.active { background: var(--accent); color: #fff; }
+
+  button.primary {
+    width: 100%; border: none; background: var(--accent); color: #fff; padding: 13px 0;
+    border-radius: 12px; font-size: clamp(14px, 3.6vmin, 16px); font-weight: 800; cursor: pointer; margin-top: 14px;
+  }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary {
+    width: 100%; border: 1px solid var(--border); background: transparent; color: var(--text);
+    padding: 11px 0; border-radius: 12px; font-size: clamp(13px, 3.4vmin, 15px); font-weight: 700; cursor: pointer; margin-top: 10px;
+  }
+
+  .grade-list { display: flex; flex-direction: column; gap: 8px; }
+  .grade-row select, .check-row select {
+    background: #1e293b; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 8px; font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .grade-quick { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .grade-quick button { border: 1px solid var(--border); background: #0b1220; color: var(--muted); border-radius: 8px; padding: 5px 10px; font-size: 11px; cursor: pointer; }
+
+  .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .slot-btn {
+    background: #0b1220; border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    padding: 10px 6px; text-align: center; cursor: pointer; position: relative;
+  }
+  .slot-btn .slot-num { display: block; font-size: 15px; font-weight: 800; }
+  .slot-btn .slot-info { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot-btn .slot-sub { display: block; font-size: 9px; color: var(--muted); opacity: 0.7; margin-top: 1px; }
+  .slot-btn.filled { border-color: var(--accent); }
+  .slot-btn.active-slot { background: var(--accent); border-color: var(--accent); }
+  .slot-btn.active-slot .slot-num, .slot-btn.active-slot .slot-info, .slot-btn.active-slot .slot-sub { color: #ffffff; }
+  .slot-rename-btn {
+    position: absolute; top: 3px; right: 22px; width: 18px; height: 18px; border-radius: 50%;
+    border: none; background: rgba(255,255,255,0.15); color: inherit; font-size: 10px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
+  }
+  .slot-delete-btn {
+    position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%;
+    border: none; background: rgba(220,38,38,0.35); color: inherit; font-size: 10px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
+  }
+
+  #checkFilter {
+    width: 100%; background: #0b1220; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 9px 12px; font-size: 14px; margin: 10px 0;
+  }
+  .check-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+  .check-actions button {
+    flex: 1; border: 1px solid var(--border); background: transparent; color: var(--text);
+    padding: 8px 0; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .check-list {
+    max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: #0b1220;
+  }
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; }
+  .check-row.unchecked { opacity: 0.4; }
+  .check-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+  .check-row label { font-size: 14px; flex: 1; }
+
+  .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .history-item {
+    background: #0b1220; border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .history-item .history-info { flex: 1; min-width: 0; }
+  .history-item .history-title { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-item .history-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .history-item button {
+    border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+  }
+  .history-item .history-view-btn { background: var(--accent); color: #fff; }
+  .history-item .history-delete-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .history-empty { color: var(--muted); font-size: 12px; text-align: center; padding: 10px; }
+
+  .groups-out { display: grid; gap: 10px; }
+  .group-card { background: #0b1220; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .group-card h3 { margin: 0 0 8px; font-size: 14px; color: var(--accent); display: flex; justify-content: space-between; align-items: baseline; }
+  .group-card .avg-tag { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .group-card ul { margin: 0; padding-left: 18px; }
+  .group-card li { font-size: 14px; margin: 3px 0; }
+  .group-card li .g { color: var(--muted); font-size: 11px; }
+  .hidden { display: none !important; }
+
+  .bracket-sections { display: flex; flex-direction: column; gap: 18px; }
+  .bracket-group-title {
+    font-size: 15px; font-weight: 800; color: var(--text); margin: 18px 0 10px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+  }
+  .bracket-group-title:first-child { margin-top: 0; }
+  .round-section-title {
+    font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 8px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .round-section-list { display: flex; flex-direction: column; gap: 10px; }
+  .match { background: #0b1220; border: 1px solid var(--border); border-radius: 10px; width: 100%; overflow: hidden; }
+  .match .side { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .match .side span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .match .side:last-child { border-bottom: none; }
+  .match .side.tbd { color: var(--muted); }
+  .match .side.winner { color: #34d399; font-weight: 800; }
+  .match .side.bye-side { color: var(--muted); }
+  .match .score-input { flex-shrink: 0; }
+  .match .score-input {
+    width: 44px; background: #1e293b; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 4px 6px; font-size: 12px; text-align: center;
+  }
+  .match .score-tag, .rr-match .score-tag { font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .match .finish-btn, .match .edit-btn {
+    display: block; width: 100%; border: none; border-top: 1px solid var(--border);
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; padding: 7px 0; cursor: pointer;
+  }
+  .match .edit-btn { background: transparent; color: var(--muted); }
+
+  table.rr { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.rr th, table.rr td { border: 1px solid var(--border); padding: 8px; text-align: center; }
+  table.rr th { background: #0b1220; color: var(--muted); font-size: 11px; }
+  .rr-note { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  .rr-matches { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .rr-match { background: #0b1220; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 6px; }
+  .rr-match .rr-name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 4px; border-radius: 6px; cursor: pointer; text-align: center; }
+  .rr-match .rr-name.winner { color: #34d399; font-weight: 800; }
+  .rr-match .rr-name.loser { color: var(--muted); }
+  .rr-match .rr-vs { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+  .rr-match .score-input { width: 40px; flex-shrink: 0; }
+  .rr-match .rr-finish, .rr-match .rr-edit {
+    flex-shrink: 0; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; padding: 6px 10px; cursor: pointer;
+  }
+  .rr-match .rr-finish { background: var(--accent); color: #fff; }
+  .rr-match .rr-edit { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .rr-standings-title { font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .side-name.clickable, .rr-name { cursor: pointer; }
+
+  #captureArea { background: var(--bg); padding: 4px; border-radius: 12px; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; width: min(320px, 100%);
+  }
+  .modal-message { font-size: 14px; line-height: 1.5; white-space: pre-line; margin-bottom: 14px; max-height: 60vh; overflow-y: auto; }
+  .modal-input {
+    width: 100%; background: #0b1220; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 9px 12px; font-size: 14px; margin-bottom: 14px;
+  }
+  .modal-actions { display: flex; gap: 8px; }
+  .modal-btn { flex: 1; border: none; border-radius: 10px; padding: 10px 0; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .modal-btn.ok { background: var(--accent); color: #fff; }
+  .modal-btn.cancel { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+
+  .top-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .top-bar .seg { flex: 0 0 auto; }
+  .manual-btn {
+    border: 1px solid var(--border); background: #1e293b; color: var(--text); border-radius: 999px;
+    padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+
+  .manual-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .manual-overlay.show { display: flex; }
+  .manual-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    width: min(560px, 100%); max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .manual-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; border-bottom: 1px solid var(--border); }
+  .manual-header h2 { margin: 0; font-size: 16px; }
+  .manual-close-btn { border: none; background: transparent; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 8px; }
+  .manual-body { padding: 16px 18px; overflow-y: auto; font-size: 13px; line-height: 1.6; }
+  .manual-body h3 { font-size: 14px; color: var(--accent); margin: 16px 0 6px; }
+  .manual-body h3:first-child { margin-top: 0; }
+  .manual-body ul { margin: 0 0 4px; padding-left: 18px; }
+  .manual-body li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-bar">
+    <div class="seg" id="langSeg">
+      <button data-lang="ko" class="active">한국어</button>
+      <button data-lang="en">English</button>
+    </div>
+    <button class="manual-btn" id="manualBtn" data-i18n="manualBtn">📖 사용설명서</button>
+  </div>
+  <h1 data-i18n="appTitle">🎲 팀나누기 &amp; 대진표</h1>
+  <div class="subtitle" data-i18n="appSubtitle">운동을 고르고, 등급을 매기면 밸런스 맞는 팀과 대진표까지 만들어줘요</div>
+
+  <!-- STEP 1: sport -->
+  <div class="card">
+    <h2><span class="step-num">1</span><span data-i18n="step1Title">운동 선택</span></h2>
+    <div class="sport-grid" id="sportGrid">
+      <button class="sport-btn active" data-kind="racket" data-default="2"><span class="emoji">🏸</span><span data-i18n="sportBadminton">배드민턴</span></button>
+      <button class="sport-btn" data-kind="racket" data-default="2"><span class="emoji">🏓</span><span data-i18n="sportTableTennis">탁구</span></button>
+      <button class="sport-btn" data-kind="racket" data-default="2"><span class="emoji">🎾</span><span data-i18n="sportTennis">테니스</span></button>
+      <button class="sport-btn" data-kind="team" data-default="4"><span class="emoji">🦶</span><span data-i18n="sportJokgu">족구</span></button>
+      <button class="sport-btn" data-kind="team" data-default="5"><span class="emoji">🏀</span><span data-i18n="sportBasketball">농구</span></button>
+      <button class="sport-btn" data-kind="team" data-default="11"><span class="emoji">⚽</span><span data-i18n="sportSoccer">축구</span></button>
+      <button class="sport-btn" data-kind="team" data-default="6"><span class="emoji">🏐</span><span data-i18n="sportVolleyball">배구</span></button>
+      <button class="sport-btn" data-kind="team" data-default="2"><span class="emoji">✏️</span><span data-i18n="sportCustom">직접 입력</span></button>
+    </div>
+    <div class="row" id="racketTypeRow">
+      <label data-i18n="matchStyleLabel">방식</label>
+      <div class="seg" id="racketTypeSeg" style="flex:1;">
+        <button data-size="1" data-i18n="singles">단식</button>
+        <button data-size="2" class="active" data-i18n="doubles">복식</button>
+      </div>
+    </div>
+    <div class="row hidden" id="customSizeRow">
+      <label for="customSize" data-i18n="teamSizeLabel">팀 인원(명)</label>
+      <input type="number" id="customSize" min="1" max="15" value="2">
+    </div>
+  </div>
+
+  <!-- STEP 2: participant roster (input + attendance + gender/grade, all in one) -->
+  <div class="card">
+    <h2><span class="step-num">2</span><span data-i18n="step2Title">참가자 입력 &amp; 확인</span></h2>
+    <textarea id="playersInput" data-i18n-ph="playersPlaceholder" placeholder="한 줄에 한 명씩 입력하세요
+이름만 넣어도 되고, &quot;이름,성별,등급&quot;처럼 붙여넣으면 성별·등급도 자동 반영돼요
+예)
+철수
+영희,여,B
+민수,남,A
+지은,여"></textarea>
+    <div class="hint" id="playerCount">0명 입력됨</div>
+    <div class="hint" data-i18n="pasteHint">엑셀에서 이름·성별·등급 열을 함께 복사해 붙여넣어도 인식돼요 (탭/쉼표 구분).</div>
+    <button class="secondary" id="applyPlayersBtn" data-i18n="applyToRoster">명단에 반영</button>
+
+    <div class="row" style="margin-top:16px;">
+      <label data-i18n="saveSlotsLabel">참가자 저장</label>
+      <div class="seg" id="slotModeSeg" style="flex:1;">
+        <button data-mode="save" class="active" data-i18n="save">저장</button>
+        <button data-mode="load" data-i18n="load">불러오기</button>
+      </div>
+    </div>
+    <div class="slot-grid" id="slotGrid"></div>
+
+    <div class="hint" id="genderCount" style="margin-top:16px; font-weight:700; color:var(--text);"></div>
+    <div class="hint" id="checkCount"></div>
+    <div class="hint" data-i18n="attendanceHint">오늘 안 온 사람은 체크를 해제하면 팀 편성에서 빠져요. 이름 옆에서 성별·등급도 바로 지정하세요.</div>
+    <input type="text" id="checkFilter" data-i18n-ph="searchNamePlaceholder" placeholder="이름 검색">
+    <div class="check-actions">
+      <button id="checkAllBtn" data-i18n="checkAll">전체 참가</button>
+      <button id="uncheckAllBtn" data-i18n="uncheckAll">전체 불참</button>
+    </div>
+    <div class="grade-quick">
+      <button data-g="A" data-i18n-tpl="allGrade" data-g-letter="A">전체 A</button><button data-g="B" data-i18n-tpl="allGrade" data-g-letter="B">전체 B</button>
+      <button data-g="C" data-i18n-tpl="allGrade" data-g-letter="C">전체 C</button><button data-g="D" data-i18n-tpl="allGrade" data-g-letter="D">전체 D</button><button data-g="E" data-i18n-tpl="allGrade" data-g-letter="E">전체 E</button>
+    </div>
+    <div class="check-list" id="rosterList"></div>
+    <button class="primary" id="toTeamBtn" data-i18n="formTeamsBtn">팀 편성하기</button>
+  </div>
+
+  <!-- STEP 3: team formation mode + result -->
+  <div class="card hidden" id="teamCard">
+    <h2><span class="step-num">3</span><span data-i18n="step3Title">팀 편성</span></h2>
+    <div class="row" style="margin-top:0;">
+      <label data-i18n="matchTypeLabel">매치 구분</label>
+    </div>
+    <div class="seg" id="genderModeSeg"></div>
+    <div class="row" style="margin-top:12px;">
+      <label data-i18n="formationModeLabel">편성 방식</label>
+    </div>
+    <div class="seg" id="teamModeSeg">
+      <button data-mode="balance" class="active" data-i18n="modeBalance">밸런스 매칭 (등급 기준)</button>
+      <button data-mode="tier" data-i18n="modeTier">동급 편성 (등급끼리)</button>
+      <button data-mode="random" data-i18n="modeRandom">순수 랜덤</button>
+    </div>
+    <div class="hint" id="teamModeHint" data-i18n="teamModeHintText">밸런스는 강+약을 묶어 팀 실력을 고르게, 동급은 같은 등급끼리 묶어서 고레벨은 고레벨끼리 붙게 해요.</div>
+    <div class="hint" id="teamSizeInfo"></div>
+    <button class="primary" id="makeTeamsBtn" data-i18n="makeTeamsBtn">팀 만들기</button>
+    <div class="groups-out" id="teamsOut" style="margin-top:14px;"></div>
+    <button class="secondary hidden" id="remakeTeamsBtn" data-i18n="remakeTeamsBtn">다시 편성하기</button>
+  </div>
+
+  <!-- STEP 5: bracket settings -->
+  <div class="card hidden" id="bracketSettingsCard">
+    <h2><span class="step-num">4</span><span data-i18n="step4Title">대진표 방식</span></h2>
+    <div class="seg" id="bracketModeSeg">
+      <button data-mode="single" class="active" data-i18n="modeSingleElim">싱글 엘리미네이션</button>
+      <button data-mode="double" data-i18n="modeDoubleElim">더블 엘리미네이션</button>
+      <button data-mode="rr" data-i18n="modeRR">리그전 (라운드로빈)</button>
+      <button data-mode="rotation" data-i18n="modeRotation">친목 로테이션</button>
+    </div>
+    <div class="hint hidden" id="rotationHint" data-i18n="rotationHintText">등수 없이, 매 라운드 안 해본 사람과 밸런스 맞춰 계속 돌려가며 게임해요.</div>
+    <div class="row hidden" id="courtCountRow">
+      <label for="courtCount" data-i18n="courtCountLabel">동시 진행 코트 수</label>
+      <input type="number" id="courtCount" min="1" value="1">
+    </div>
+    <button class="primary" id="makeBracketBtn" data-i18n="makeBracketBtn">대진표 만들기</button>
+  </div>
+
+  <!-- STEP 6: bracket result -->
+  <div class="card hidden" id="bracketCard">
+    <h2><span class="step-num">5</span><span data-i18n="step5Title">대진표</span></h2>
+    <div id="captureArea"><div id="bracketOut"></div></div>
+    <button class="secondary" id="shareBtn" data-i18n="shareImageBtn">📷 이미지로 저장/공유</button>
+    <button class="secondary" id="saveResultBtn" data-i18n="saveResultBtn">📜 이 결과 기록에 저장</button>
+  </div>
+
+  <div class="card" id="historyCard">
+    <h2 data-i18n="historyTitle">📜 지난 대진표 기록</h2>
+    <div class="hint" data-i18n="historyHint">저장한 결과를 나중에 다시 볼 수 있어요 (최근 20개까지).</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-message" id="modalMessage"></div>
+    <input type="text" id="modalInput" class="modal-input hidden">
+    <div class="modal-actions">
+      <button id="modalCancelBtn" class="modal-btn cancel" data-i18n="cancel">취소</button>
+      <button id="modalOkBtn" class="modal-btn ok" data-i18n="confirm">확인</button>
+    </div>
+  </div>
+</div>
+
+<div class="manual-overlay hidden" id="manualOverlay">
+  <div class="manual-box">
+    <div class="manual-header">
+      <h2 data-i18n="manualTitle">📖 사용설명서</h2>
+      <button id="manualCloseBtn" class="manual-close-btn">✕</button>
+    </div>
+    <div class="manual-body" id="manualBody"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  // Service Worker: only works when hosted over http(s), safely skipped on file://
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* ignore if unavailable */ });
+    });
+  }
+</script>
+<script>
+(function () {
+  // ---- i18n ----
+  let currentLang = localStorage.getItem('tb_lang') || 'ko';
+
+  const I18N = {
+    ko: {
+      manualBtn: '📖 사용설명서', appTitle: '🎲 팀나누기 &amp; 대진표',
+      appSubtitle: '운동을 고르고, 등급을 매기면 밸런스 맞는 팀과 대진표까지 만들어줘요',
+      step1Title: '운동 선택', sportBadminton: '배드민턴', sportTableTennis: '탁구', sportTennis: '테니스',
+      sportJokgu: '족구', sportBasketball: '농구', sportSoccer: '축구', sportVolleyball: '배구', sportCustom: '직접 입력',
+      matchStyleLabel: '방식', singles: '단식', doubles: '복식', teamSizeLabel: '팀 인원(명)',
+      step2Title: '참가자 입력 & 확인',
+      playersPlaceholder: '한 줄에 한 명씩 입력하세요\n이름만 넣어도 되고, "이름,성별,등급"처럼 붙여넣으면 성별·등급도 자동 반영돼요\n예)\n철수\n영희,여,B\n민수,남,A\n지은,여',
+      playerCountText: '{n}명 입력됨', pasteHint: '엑셀에서 이름·성별·등급 열을 함께 복사해 붙여넣어도 인식돼요 (탭/쉼표 구분).',
+      applyToRoster: '명단에 반영', saveSlotsLabel: '참가자 저장', save: '저장', load: '불러오기',
+      slotEmpty: '비어있음', slotPeople: '{n}명',
+      genderCountText: '남 {m}명 · 여 {f}명 (총 {total}명)', checkCountText: '{checked} / {total}명 참가 체크됨',
+      attendanceHint: '오늘 안 온 사람은 체크를 해제하면 팀 편성에서 빠져요. 이름 옆에서 성별·등급도 바로 지정하세요.',
+      searchNamePlaceholder: '이름 검색', checkAll: '전체 참가', uncheckAll: '전체 불참',
+      allGrade: '전체 {letter}', genderMale: '남', genderFemale: '여',
+      formTeamsBtn: '팀 편성하기',
+      step3Title: '팀 편성', matchTypeLabel: '매치 구분', formationModeLabel: '편성 방식',
+      modeBalance: '밸런스 매칭 (등급 기준)', modeTier: '동급 편성 (등급끼리)', modeRandom: '순수 랜덤',
+      teamModeHintText: '밸런스는 강+약을 묶어 팀 실력을 고르게, 동급은 같은 등급끼리 묶어서 고레벨은 고레벨끼리 붙게 해요.',
+      makeTeamsBtn: '팀 만들기', remakeTeamsBtn: '다시 편성하기',
+      genderModeMM: '남자 복식', genderModeFF: '여자 복식', genderModeSplitDoubles: '성별 복식(남녀 각각)',
+      genderModeMix: '혼합 복식', genderModeAllDoubles: '구분없음',
+      genderModeM: '남자부', genderModeF: '여자부', genderModeSplitTeam: '성별 구분(남녀 각각)', genderModeAllTeam: '구분없음(혼성)',
+      chooseFormationHint: '매치 구분과 편성 방식을 고르고 "팀 만들기"를 눌러주세요.',
+      teamNotEnoughPlayers: '팀 인원({size}명) 기준으로 팀을 2개 이상 만들 수 없어요. 참가 체크된 인원을 확인해주세요.',
+      mixNeedBoth: '혼합 복식을 만들려면 남자, 여자 참가자가 각각 1명 이상 필요해요.',
+      splitNotEnough: '남녀 각각 팀을 만들기에 인원이 부족해요.',
+      splitMaleTeams: '남자 팀 {n}개', splitFemaleTeams: '여자 팀 {n}개', splitLeftover: ' (+소수팀 {n}명)',
+      splitMaleShort: '남자 인원 부족({n}명)으로 편성 안 됨', splitFemaleShort: '여자 인원 부족({n}명)으로 편성 안 됨',
+      genderTeamsFormed: '{label}팀 {n}개 편성됨 (팀당 {size}명 기준)', leftoverTeam: ', 인원이 안 맞아 {n}명은 별도의 소수 팀으로 편성됨',
+      oppositeExcluded: ', 반대 성별 {n}명은 이번 편성에서 제외됨',
+      genderShort: '{label}참가자가 부족해서 팀을 만들 수 없어요.',
+      teamLabel: '팀 {n}', avgLabel: '평균 {v}', minorTeamTag: ' ({n}인 · 소수팀)',
+      groupMaleLabel: '남자', groupFemaleLabel: '여자', groupTeamsSuffix: '팀',
+      step4Title: '대진표 방식',
+      modeSingleElim: '싱글 엘리미네이션', modeDoubleElim: '더블 엘리미네이션', modeRR: '리그전 (라운드로빈)', modeRotation: '친목 로테이션',
+      rotationHintText: '등수 없이, 매 라운드 안 해본 사람과 밸런스 맞춰 계속 돌려가며 게임해요.',
+      courtCountLabel: '동시 진행 코트 수', makeBracketBtn: '대진표 만들기',
+      needMakeTeamsFirst: '먼저 팀을 만들어주세요.', doubleElimNeedMore: '더블 엘리미네이션은 팀(또는 조)이 3개 이상 필요해요.',
+      rotationNotEnough: '로테이션을 시작하기엔 참가 체크된 인원이 부족해요.',
+      step5Title: '대진표', shareImageBtn: '📷 이미지로 저장/공유', saveResultBtn: '📜 이 결과 기록에 저장',
+      historyTitle: '📜 지난 대진표 기록', historyHint: '저장한 결과를 나중에 다시 볼 수 있어요 (최근 20개까지).',
+      historyEmpty: '아직 저장된 기록이 없어요.', historyView: '보기', historyDelete: '삭제 확인',
+      historyDeleteConfirm: '이 기록을 삭제할까요?', historySaved: '결과를 기록에 저장했어요.',
+      historyNothingToSave: '저장할 대진표 결과가 없어요. 먼저 대진표를 만들어주세요.',
+      roundN: '{n}라운드', finalRound: '🏆 결승', tbd: 'TBD', bye: 'BYE', byeParen: '(부전승)',
+      finishBtn: '종료', confirmChampionBtn: '우승팀 확정', editBtn: '수정', scorePlaceholder: '점수',
+      winConfirm: '"{name}" 팀이 승리했나요?', drawNotAllowed: '동점은 안 돼요. 점수를 다시 확인해주세요.',
+      bothScoresNeeded: '두 팀 점수를 모두 입력해주세요. 점수 없이 바로 승자를 정하려면 이름을 탭하세요.',
+      alreadyUsedNextRound: '이미 다음 라운드나 패자조에서 이 결과를 사용했어요. 그 경기를 먼저 되돌려주세요.',
+      alreadyUsedNext: '이미 다음 라운드에서 이 결과를 사용했어요. 그 경기를 먼저 되돌려주세요.',
+      resetFirst: '리셋 경기 결과를 먼저 되돌려주세요.',
+      wbTitle: '🏆 승자조', wbRoundN: '승자조 {n}라운드', wbFinal: '승자조 결승',
+      lbTitle: '패자조', lbRoundN: '패자조 {n}라운드', lbFinal: '패자조 결승',
+      gfTitle: '🏆 그랜드 파이널', gfFinishBtn: '경기 종료', gfReset: '🔁 리셋 경기 (패자조 팀이 이겨서 한 번 더!)', gfResetFinishBtn: '우승팀 확정',
+      championText: '🏆 최종 우승: {name}',
+      rrTooMany: '⚠ 참가 수가 많아 전체 {n}경기가 생성됩니다.', vs: 'vs', drawLabel: '무승부',
+      standingsTitle: '순위', rankCol: '순위', nameCol: '이름', playedCol: '경기', winCol: '승', drawCol: '무', lossCol: '패', pointsCol: '승점',
+      leagueTitle: '리그전', rankLine: '{rank}위 {name} ({win}승 {draw}무 {loss}패, {points}점)',
+      rotationRoundHeader: '{n}라운드 (코트 {courts}개)', restingHeader: '💤 이번 라운드 휴식: {names}',
+      nextRoundBtn: '다음 라운드 만들기', gamesPlayedTitle: '참가자별 경기 수', gamesPlayedCount: '{n}경기',
+      slotSaveConfirm: '저장할 참가자를 먼저 입력해주세요.', slotEmptyMsg: '{n}번 슬롯에는 저장된 내용이 없어요.',
+      slotDeleteConfirm: '⚠️ {n}번 슬롯("{name}", {count}명)을 삭제할까요?\n삭제하면 되돌릴 수 없어요.',
+      slotNamePrompt: '슬롯 이름을 입력하세요 (비워두면 번호만 표시돼요)', slotDefaultName: '{n}번 슬롯',
+      participantsMin: '참가자를 2명 이상 입력해주세요.', checkedMin: '참가 체크된 인원이 너무 적어요. 2명 이상 체크해주세요.',
+      imageError: '이미지 생성 중 오류가 발생했어요.', cancel: '취소', confirm: '확인',
+      manualTitle: '📖 사용설명서',
+      singleTitle: '싱글 엘리미네이션', doubleTitle: '더블 엘리미네이션',
+      gfLine: '그랜드파이널:', resetLine: '리셋경기:', winLabel: ' → 승: {name}', wbLine: '- 승자조 -', lbLine: '- 패자조 -',
+    },
+    en: {
+      manualBtn: '📖 User Guide', appTitle: '🎲 Team Split &amp; Bracket',
+      appSubtitle: 'Pick a sport and set grades — get balanced teams and a bracket in one flow',
+      step1Title: 'Pick a Sport', sportBadminton: 'Badminton', sportTableTennis: 'Table Tennis', sportTennis: 'Tennis',
+      sportJokgu: 'Footvolley', sportBasketball: 'Basketball', sportSoccer: 'Soccer', sportVolleyball: 'Volleyball', sportCustom: 'Custom',
+      matchStyleLabel: 'Format', singles: 'Singles', doubles: 'Doubles', teamSizeLabel: 'Players per team',
+      step2Title: 'Participants & Check-in',
+      playersPlaceholder: 'One name per line\nJust a name is fine, or paste "Name,Gender,Grade" to auto-fill gender/grade\ne.g.\nAlex\nJordan,F,B\nSam,M,A\nMorgan,F',
+      playerCountText: '{n} entered', pasteHint: 'You can also paste Name/Gender/Grade columns copied straight from Excel (tab or comma separated).',
+      applyToRoster: 'Apply to Roster', saveSlotsLabel: 'Save Roster', save: 'Save', load: 'Load',
+      slotEmpty: 'Empty', slotPeople: '{n}',
+      genderCountText: 'M {m} · F {f} (Total {total})', checkCountText: '{checked} / {total} checked in',
+      attendanceHint: "Uncheck anyone who didn't show up today to exclude them from teams. You can also set gender/grade right next to each name.",
+      searchNamePlaceholder: 'Search name', checkAll: 'Check All', uncheckAll: 'Uncheck All',
+      allGrade: 'All {letter}', genderMale: 'M', genderFemale: 'F',
+      formTeamsBtn: 'Form Teams',
+      step3Title: 'Team Formation', matchTypeLabel: 'Match Type', formationModeLabel: 'Formation Mode',
+      modeBalance: 'Balanced (by grade)', modeTier: 'Same-Tier (by grade)', modeRandom: 'Pure Random',
+      teamModeHintText: 'Balanced pairs strong with weak for even team strength; Same-Tier groups similar grades so top players face top players.',
+      makeTeamsBtn: 'Make Teams', remakeTeamsBtn: 'Redo Teams',
+      genderModeMM: "Men's Doubles", genderModeFF: "Women's Doubles", genderModeSplitDoubles: 'Split by Gender (both)',
+      genderModeMix: 'Mixed Doubles', genderModeAllDoubles: 'No Split',
+      genderModeM: "Men's", genderModeF: "Women's", genderModeSplitTeam: 'Split by Gender (both)', genderModeAllTeam: 'No Split (Mixed)',
+      chooseFormationHint: 'Choose a match type and formation mode, then tap "Make Teams".',
+      teamNotEnoughPlayers: "Can't make 2+ teams of {size}. Check your checked-in participant count.",
+      mixNeedBoth: 'Mixed doubles needs at least 1 man and 1 woman.',
+      splitNotEnough: 'Not enough players to form separate men’s and women’s teams.',
+      splitMaleTeams: '{n} men’s team(s)', splitFemaleTeams: '{n} women’s team(s)', splitLeftover: ' (+{n} on a small team)',
+      splitMaleShort: 'Not enough men ({n}) — no team formed', splitFemaleShort: 'Not enough women ({n}) — no team formed',
+      genderTeamsFormed: '{n} {label}team(s) formed ({size} per team)', leftoverTeam: ', {n} left over on a small team',
+      oppositeExcluded: ', {n} of the opposite gender excluded this time',
+      genderShort: 'Not enough {label}players to form a team.',
+      teamLabel: 'Team {n}', avgLabel: 'Avg {v}', minorTeamTag: ' ({n} · small team)',
+      groupMaleLabel: 'Men', groupFemaleLabel: 'Women', groupTeamsSuffix: 'Teams',
+      step4Title: 'Bracket Format',
+      modeSingleElim: 'Single Elimination', modeDoubleElim: 'Double Elimination', modeRR: 'Round Robin (League)', modeRotation: 'Casual Rotation',
+      rotationHintText: 'No rankings — every round re-pairs people who haven’t played together yet, kept balanced.',
+      courtCountLabel: 'Courts running at once', makeBracketBtn: 'Make Bracket',
+      needMakeTeamsFirst: 'Please form teams first.', doubleElimNeedMore: 'Double elimination needs at least 3 teams/groups.',
+      rotationNotEnough: 'Not enough checked-in players to start a rotation.',
+      step5Title: 'Bracket', shareImageBtn: '📷 Save/Share Image', saveResultBtn: '📜 Save This Result',
+      historyTitle: '📜 Past Results', historyHint: 'Saved results can be viewed again later (up to the last 20).',
+      historyEmpty: 'No saved results yet.', historyView: 'View', historyDelete: 'Confirm Delete',
+      historyDeleteConfirm: 'Delete this result?', historySaved: 'Saved to history.',
+      historyNothingToSave: 'Nothing to save yet. Make a bracket first.',
+      roundN: 'Round {n}', finalRound: '🏆 Final', tbd: 'TBD', bye: 'BYE', byeParen: '(bye)',
+      finishBtn: 'Finish', confirmChampionBtn: 'Confirm Champion', editBtn: 'Edit', scorePlaceholder: 'score',
+      winConfirm: 'Did "{name}" win?', drawNotAllowed: "Ties aren't allowed. Please check the scores again.",
+      bothScoresNeeded: 'Please enter both scores. To pick a winner without scores, tap their name instead.',
+      alreadyUsedNextRound: 'This result already fed into the next round or the losers bracket. Undo that match first.',
+      alreadyUsedNext: 'This result already fed into the next round. Undo that match first.',
+      resetFirst: 'Please undo the reset match result first.',
+      wbTitle: '🏆 Winners Bracket', wbRoundN: 'Winners Round {n}', wbFinal: 'Winners Final',
+      lbTitle: 'Losers Bracket', lbRoundN: 'Losers Round {n}', lbFinal: 'Losers Final',
+      gfTitle: '🏆 Grand Final', gfFinishBtn: 'Finish Match', gfReset: '🔁 Bracket Reset (losers-side team won — once more!)', gfResetFinishBtn: 'Confirm Champion',
+      championText: '🏆 Champion: {name}',
+      rrTooMany: '⚠ That’s a lot of players — {n} total matches will be generated.', vs: 'vs', drawLabel: 'Draw',
+      standingsTitle: 'Standings', rankCol: '#', nameCol: 'Name', playedCol: 'P', winCol: 'W', drawCol: 'D', lossCol: 'L', pointsCol: 'Pts',
+      leagueTitle: 'League', rankLine: '#{rank} {name} ({win}W {draw}D {loss}L, {points}pts)',
+      rotationRoundHeader: 'Round {n} ({courts} courts)', restingHeader: '💤 Resting this round: {names}',
+      nextRoundBtn: 'Make Next Round', gamesPlayedTitle: 'Games Played', gamesPlayedCount: '{n} games',
+      slotSaveConfirm: 'Please enter participants to save first.', slotEmptyMsg: 'Slot {n} has nothing saved.',
+      slotDeleteConfirm: '⚠️ Delete slot {n} ("{name}", {count} people)?\nThis can’t be undone.',
+      slotNamePrompt: 'Name this slot (optional, leave blank to just show the number)', slotDefaultName: 'Slot {n}',
+      participantsMin: 'Please enter at least 2 participants.', checkedMin: 'Too few checked in. Please check in at least 2.',
+      imageError: 'Something went wrong generating the image.', cancel: 'Cancel', confirm: 'OK',
+      manualTitle: '📖 User Guide',
+      singleTitle: 'Single Elimination', doubleTitle: 'Double Elimination',
+      gfLine: 'Grand Final:', resetLine: 'Reset match:', winLabel: ' → won: {name}', wbLine: '- Winners Bracket -', lbLine: '- Losers Bracket -',
+    }
+  };
+
+  function t(key, vars) {
+    let s = (I18N[currentLang] && I18N[currentLang][key] != null) ? I18N[currentLang][key] : (I18N.ko[key] || key);
+    if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+
+  const GRADE_VALUE = { A: 5, B: 4, C: 3, D: 2, E: 1 };
+  // Balance matching treats a woman's grade as one tier below the same
+  // letter grade for a man (e.g. 여자 A ≈ 남자 B), since this pairs off
+  // players when a mixed pool is sorted/balanced by skill together.
+  function effectiveSkill(p) {
+    const base = GRADE_VALUE[playerGrades[p]] || 3;
+    return playerGenders[p] === 'F' ? Math.max(1, base - 1) : base;
+  }
+
+  // ---- custom modal (replaces native alert/confirm/prompt, which can be
+  // blocked in sandboxed previews and app WebViews) ----
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalMessage = document.getElementById('modalMessage');
+  const modalInput = document.getElementById('modalInput');
+  const modalOkBtn = document.getElementById('modalOkBtn');
+  const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+  function showModal({ message, showInput = false, inputValue = '', hideCancel = false }) {
+    return new Promise((resolve) => {
+      modalMessage.textContent = message;
+      modalInput.classList.toggle('hidden', !showInput);
+      modalInput.value = inputValue;
+      modalCancelBtn.classList.toggle('hidden', hideCancel);
+      modalOverlay.classList.remove('hidden');
+      if (showInput) setTimeout(() => modalInput.focus(), 50);
+
+      function cleanup(result) {
+        modalOverlay.classList.add('hidden');
+        modalOkBtn.onclick = null;
+        modalCancelBtn.onclick = null;
+        resolve(result);
+      }
+      // assignment (not addEventListener) always replaces any previous
+      // handler outright, so a modal triggered again before an earlier one
+      // resolved can never leave stale listeners stacked on these buttons.
+      modalOkBtn.onclick = () => cleanup(showInput ? modalInput.value : true);
+      modalCancelBtn.onclick = () => cleanup(showInput ? null : false);
+    });
+  }
+
+  function showAlert(message) {
+    return showModal({ message, hideCancel: true });
+  }
+  function showConfirm(message) {
+    return showModal({ message });
+  }
+  function showPrompt(message, inputValue) {
+    return showModal({ message, showInput: true, inputValue: inputValue || '' });
+  }
+
+  const langSeg = document.getElementById('langSeg');
+  const manualBtn = document.getElementById('manualBtn');
+  const manualOverlay = document.getElementById('manualOverlay');
+  const manualCloseBtn = document.getElementById('manualCloseBtn');
+
+  function applyLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('tb_lang', lang);
+    document.documentElement.lang = lang;
+    langSeg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll('[data-i18n-tpl="allGrade"]').forEach(el => { el.textContent = t('allGrade', { letter: el.dataset.gLetter }); });
+
+    if (typeof updatePlayerCount === 'function') updatePlayerCount();
+    if (typeof updateGenderModeOptions === 'function') updateGenderModeOptions();
+    if (typeof renderRoster === 'function') renderRoster();
+    if (typeof renderSlots === 'function') renderSlots();
+    if (typeof renderHistory === 'function') renderHistory();
+    if (typeof currentTeams !== 'undefined' && currentTeams.length && typeof renderTeams === 'function') renderTeams(currentTeams);
+    const bracketCardEl = document.getElementById('bracketCard');
+    if (bracketCardEl && !bracketCardEl.classList.contains('hidden') && typeof renderBracket === 'function') renderBracket();
+    if (!manualOverlay.classList.contains('hidden') && manualOverlay.classList.contains('show') && typeof renderManual === 'function') renderManual();
+  }
+
+  langSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    applyLanguage(btn.dataset.lang);
+  });
+
+  function renderManual() {
+    const body = document.getElementById('manualBody');
+    body.innerHTML = currentLang === 'en' ? `
+      <h3>1) Pick a Sport</h3>
+      <ul>
+        <li>Badminton / Table Tennis / Tennis: pick Singles or Doubles.</li>
+        <li>Footvolley / Basketball / Soccer / Volleyball / Custom: type in the exact number of players per team (club sizes vary).</li>
+      </ul>
+      <h3>2) Participants & Check-in</h3>
+      <ul>
+        <li>Type one name per line, or paste "Name,Gender,Grade" (tab or comma separated — Excel columns paste in directly) to fill in gender/grade at the same time.</li>
+        <li>Edits in the textarea and edits in the roster list below sync to each other automatically.</li>
+        <li>Save/Load up to 9 named slots — includes names, gender, and grade. Rename (✎) or delete (✕) any saved slot. Saving/loading never asks for confirmation, so it's instant.</li>
+        <li>Uncheck anyone absent today — only checked names go into teams.</li>
+        <li>Grade is A (highest) to E (lowest). A woman's grade counts as one tier below the same letter for a man when balancing (e.g. a woman graded A ≈ a man graded B).</li>
+      </ul>
+      <h3>3) Team Formation</h3>
+      <ul>
+        <li><b>Match type:</b> Men's/Women's only, Mixed (pairs top man with top woman, 2nd with 2nd, etc.), or Split by Gender (forms separate men's and women's teams in the same run, so nobody is excluded).</li>
+        <li><b>Formation mode:</b> Balanced (pairs strong with weak so every team is similar overall strength), Same-Tier (groups similar grades together so top players face top players), or Pure Random.</li>
+        <li>Leftover players who don't divide evenly form their own smaller team instead of being folded into a full one.</li>
+      </ul>
+      <h3>4) Bracket Format</h3>
+      <ul>
+        <li><b>Single Elimination:</b> lose once, you're out. Byes auto-advance in round 1 only. Enter both scores and tap Finish, or just tap a team's name (with a confirmation) to set the winner without scores. Undo a finished match with Edit — this also resets anything already decided using that result.</li>
+        <li><b>Double Elimination:</b> a Winners Bracket and Losers Bracket — losing once drops you to the losers bracket for a second chance. The winners-bracket champion meets the losers-bracket champion in the Grand Final; if the losers-bracket side wins that, a Reset match decides the real champion.</li>
+        <li><b>Round Robin (League):</b> everyone plays everyone once. A win/draw/loss/points standings table sorts automatically as results come in.</li>
+        <li><b>Casual Rotation:</b> no rankings. Set how many courts run at once; each new round re-pairs players, preferring people who haven't been teammates/opponents yet while keeping skill balanced. If there aren't enough courts for everyone, the least-played people get priority to play.</li>
+        <li>Save the current image with the share button, or save a text summary to Past Results to look back at later (single/double elimination and league only).</li>
+      </ul>
+      <h3>📖 Notes</h3>
+      <ul>
+        <li>Everything is stored on this device only (no account, no server) — clearing browser data will erase saved slots and history.</li>
+        <li>Switch languages anytime with the toggle at the top; your data stays exactly the same.</li>
+      </ul>
+    ` : `
+      <h3>1) 운동 선택</h3>
+      <ul>
+        <li>배드민턴/탁구/테니스는 단식·복식 토글로 선택.</li>
+        <li>족구/농구/축구/배구/직접입력은 동호회 상황에 맞게 팀 인원을 직접 숫자로 입력.</li>
+      </ul>
+      <h3>2) 참가자 입력 &amp; 확인</h3>
+      <ul>
+        <li>한 줄에 이름만 입력해도 되고, "이름,성별,등급"(쉼표/탭 구분, 엑셀 열 붙여넣기 가능)으로 붙여넣으면 성별·등급까지 한번에 채워져요.</li>
+        <li>입력란(텍스트)과 아래 참가자 목록은 서로 자동으로 동기화돼요.</li>
+        <li>1~9번 슬롯에 이름+성별+등급까지 저장/불러오기 가능. 이름 바꾸기(✎)·삭제(✕) 가능. 저장/불러오기는 확인창 없이 바로 처리돼요.</li>
+        <li>오늘 불참한 사람은 체크 해제하면 팀 편성에서 제외돼요.</li>
+        <li>등급은 A(최상)~E(최하). 밸런스 계산 시 여자 등급은 남자보다 한 단계 낮게 취급돼요 (여자 A ≈ 남자 B).</li>
+      </ul>
+      <h3>3) 팀 편성</h3>
+      <ul>
+        <li><b>매치 구분:</b> 남자/여자만, 혼합(남녀 순위대로 짝지음), 성별 구분(남녀 각각 팀을 동시에 만들어서 아무도 빠지지 않음) 중 선택.</li>
+        <li><b>편성 방식:</b> 밸런스(강+약을 묶어 팀 실력을 고르게), 동급(비슷한 등급끼리 묶어서 고레벨은 고레벨끼리), 순수 랜덤 중 선택.</li>
+        <li>인원이 딱 안 나눠지면 남는 사람은 기존 팀에 합쳐지지 않고 별도의 소수 팀으로 편성돼요.</li>
+      </ul>
+      <h3>4) 대진표 방식</h3>
+      <ul>
+        <li><b>싱글 엘리미네이션:</b> 한 번 지면 탈락. 부전승은 1라운드에서만 자동 진출. 점수 입력 후 종료, 또는 팀 이름 탭(확인창)만으로도 승자 지정 가능. "수정"으로 되돌리면 그 결과를 사용한 다음 라운드도 같이 초기화돼요.</li>
+        <li><b>더블 엘리미네이션:</b> 승자조·패자조로 나뉘어, 한 번 져도 패자조에서 기회가 한 번 더 있어요. 승자조 우승팀과 패자조 우승팀이 그랜드 파이널에서 만나고, 패자조 팀이 이기면 리셋 경기로 최종 우승팀이 정해져요.</li>
+        <li><b>리그전:</b> 모두가 한 번씩 대결. 승/무/패/승점 순위표가 결과 입력에 따라 자동 정렬돼요.</li>
+        <li><b>친목 로테이션:</b> 등수 없음. 코트 수를 정하면 매 라운드마다 아직 같은 편/상대가 안 되어본 사람 위주로, 실력도 balance 맞춰 다시 짝지어줘요. 코트가 부족하면 덜 뛴 사람이 먼저 뛰어요.</li>
+        <li>공유 버튼으로 이미지 저장, 또는 "지난 대진표 기록"에 텍스트로 저장해서 나중에 다시 볼 수 있어요 (싱글/더블 엘리미네이션, 리그전만 지원).</li>
+      </ul>
+      <h3>📖 참고</h3>
+      <ul>
+        <li>모든 데이터는 이 기기에만 저장돼요 (계정·서버 없음) — 브라우저 데이터를 지우면 저장 슬롯과 기록도 함께 사라져요.</li>
+        <li>상단 토글로 언제든 언어를 바꿀 수 있고, 데이터는 그대로 유지돼요.</li>
+      </ul>
+    `;
+  }
+
+  manualBtn.addEventListener('click', () => {
+    renderManual();
+    manualOverlay.classList.remove('hidden');
+    manualOverlay.classList.add('show');
+  });
+  manualCloseBtn.addEventListener('click', () => {
+    manualOverlay.classList.remove('show');
+    manualOverlay.classList.add('hidden');
+  });
+  manualOverlay.addEventListener('click', (e) => {
+    if (e.target === manualOverlay) { manualOverlay.classList.remove('show'); manualOverlay.classList.add('hidden'); }
+  });
+
+  // ---- STEP 1: sport / team size ----
+  const sportGrid = document.getElementById('sportGrid');
+  const racketTypeRow = document.getElementById('racketTypeRow');
+  const racketTypeSeg = document.getElementById('racketTypeSeg');
+  const customSizeRow = document.getElementById('customSizeRow');
+  const customSizeInput = document.getElementById('customSize');
+  let teamSize = 2;
+
+  sportGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sport-btn');
+    if (!btn) return;
+    sportGrid.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const kind = btn.dataset.kind;
+    const def = parseInt(btn.dataset.default, 10) || 2;
+    if (kind === 'racket') {
+      racketTypeRow.classList.remove('hidden');
+      customSizeRow.classList.add('hidden');
+      const activeRacketBtn = racketTypeSeg.querySelector('button.active') || racketTypeSeg.querySelector('button');
+      teamSize = parseInt(activeRacketBtn.dataset.size, 10);
+    } else {
+      racketTypeRow.classList.add('hidden');
+      customSizeRow.classList.remove('hidden');
+      customSizeInput.value = def;
+      teamSize = def;
+    }
+    updateGenderModeOptions();
+  });
+
+  racketTypeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    racketTypeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    teamSize = parseInt(btn.dataset.size, 10);
+    updateGenderModeOptions();
+  });
+
+  customSizeInput.addEventListener('input', () => {
+    teamSize = Math.max(1, Math.min(15, parseInt(customSizeInput.value, 10) || 1));
+    updateGenderModeOptions();
+  });
+
+  // ---- STEP 2: unified participant roster (input + attendance + gender/grade) ----
+  const playersInput = document.getElementById('playersInput');
+  const playerCount = document.getElementById('playerCount');
+  const applyPlayersBtn = document.getElementById('applyPlayersBtn');
+  const rosterList = document.getElementById('rosterList');
+  const checkFilter = document.getElementById('checkFilter');
+  const checkCount = document.getElementById('checkCount');
+  const genderCount = document.getElementById('genderCount');
+  const checkAllBtn = document.getElementById('checkAllBtn');
+  const uncheckAllBtn = document.getElementById('uncheckAllBtn');
+  const toTeamBtn = document.getElementById('toTeamBtn');
+  const savedPlayers = localStorage.getItem('tb_players');
+  if (savedPlayers) playersInput.value = savedPlayers;
+
+  let participationMap = {}; // name -> true(참가)/false(불참)
+  let playerGrades = {};     // name -> grade
+  let playerGenders = {};    // name -> 'M' | 'F'
+  let activePlayers = [];    // checked-in subset actually used for team-building
+
+  function normalizeGenderToken(token) {
+    const t = (token || '').trim().toUpperCase();
+    if (['남', '남자', 'M', 'MALE'].includes(t)) return 'M';
+    if (['여', '여자', 'F', 'FEMALE'].includes(t)) return 'F';
+    return null;
+  }
+  function normalizeGradeToken(token) {
+    const t = (token || '').trim().toUpperCase();
+    return ['A', 'B', 'C', 'D', 'E'].includes(t) ? t : null;
+  }
+  // supports pasted lines like "철수", "철수,남,A", or tab-separated
+  // (e.g. copied straight out of a spreadsheet with name/gender/grade columns).
+  function parseRosterLine(line) {
+    const trimmed = line.trim();
+    if (!trimmed) return null;
+    const parts = (trimmed.includes('\t') ? trimmed.split('\t') : trimmed.split(','))
+      .map(s => s.trim())
+      .filter(s => s !== '');
+    if (!parts.length) return null;
+    const name = parts[0];
+    let gender = null, grade = null;
+    for (let i = 1; i < parts.length; i++) {
+      gender = gender || normalizeGenderToken(parts[i]);
+      grade = grade || normalizeGradeToken(parts[i]);
+    }
+    return { name, gender, grade };
+  }
+
+  function getPlayers() {
+    return playersInput.value.split('\n')
+      .map(line => { const parsed = parseRosterLine(line); return parsed ? parsed.name : ''; })
+      .filter(Boolean);
+  }
+
+  // pulls gender/grade out of pasted lines (e.g. "철수,남,A") into the maps;
+  // only called when the textarea content is explicitly applied, so it never
+  // clobbers manual edits made afterward via the gender/grade selects.
+  function applyPastedAttributes() {
+    playersInput.value.split('\n').forEach(line => {
+      const parsed = parseRosterLine(line);
+      if (!parsed || !parsed.name) return;
+      if (parsed.gender) playerGenders[parsed.name] = parsed.gender;
+      if (parsed.grade) playerGrades[parsed.name] = parsed.grade;
+    });
+  }
+
+  function updatePlayerCount() {
+    playerCount.textContent = t('playerCountText', { n: getPlayers().length });
+    localStorage.setItem('tb_players', playersInput.value);
+  }
+  let playersInputSyncTimer = null;
+  playersInput.addEventListener('input', () => {
+    updatePlayerCount();
+    clearTimeout(playersInputSyncTimer);
+    playersInputSyncTimer = setTimeout(() => { refreshRosterFromInput(); }, 500);
+  });
+  updatePlayerCount();
+
+  function updateGenderCount() {
+    const all = getPlayers();
+    let m = 0, f = 0;
+    all.forEach(p => { if (playerGenders[p] === 'F') f++; else m++; });
+    genderCount.textContent = t('genderCountText', { m, f, total: all.length });
+  }
+  function updateCheckCount() {
+    const all = getPlayers();
+    const checked = all.filter(p => participationMap[p]).length;
+    checkCount.textContent = t('checkCountText', { checked, total: all.length });
+  }
+
+  function renderRoster() {
+    const all = getPlayers();
+    const filterText = checkFilter.value.trim();
+    rosterList.innerHTML = '';
+    all.forEach((p, i) => {
+      if (!(p in participationMap)) participationMap[p] = true;
+      if (!playerGrades[p]) playerGrades[p] = 'C';
+      if (!playerGenders[p]) playerGenders[p] = 'M';
+      if (filterText && !p.includes(filterText)) return;
+      const row = document.createElement('div');
+      row.className = 'check-row' + (participationMap[p] ? '' : ' unchecked');
+      row.innerHTML = `
+        <input type="checkbox" class="roster-check" id="chk_${i}" ${participationMap[p] ? 'checked' : ''}>
+        <label for="chk_${i}" class="roster-name">${p}</label>
+        <select class="gender-select" data-name="${p}">
+          <option value="M">${t('genderMale')}</option>
+          <option value="F">${t('genderFemale')}</option>
+        </select>
+        <select class="grade-select" data-name="${p}">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+          <option value="E">E</option>
+        </select>`;
+      row.querySelector('.roster-check').addEventListener('change', (e) => {
+        participationMap[p] = e.target.checked;
+        row.classList.toggle('unchecked', !e.target.checked);
+        updateCheckCount();
+      });
+      row.querySelector('.gender-select').value = playerGenders[p];
+      row.querySelector('.grade-select').value = playerGrades[p];
+      rosterList.appendChild(row);
+    });
+    updateCheckCount();
+    updateGenderCount();
+  }
+
+  function syncTextareaFromRoster() {
+    const players = getPlayers();
+    playersInput.value = players
+      .map(p => `${p},${playerGenders[p] === 'F' ? t('genderFemale') : t('genderMale')},${playerGrades[p] || 'C'}`)
+      .join('\n');
+    localStorage.setItem('tb_players', playersInput.value);
+  }
+
+  rosterList.addEventListener('change', (e) => {
+    const gSel = e.target.closest('.grade-select');
+    if (gSel) { playerGrades[gSel.dataset.name] = gSel.value; syncTextareaFromRoster(); syncActiveSlot(); return; }
+    const sSel = e.target.closest('.gender-select');
+    if (sSel) { playerGenders[sSel.dataset.name] = sSel.value; updateGenderCount(); syncTextareaFromRoster(); syncActiveSlot(); return; }
+  });
+
+  function refreshRosterFromInput() {
+    applyPastedAttributes();
+    renderRoster();
+  }
+
+  applyPlayersBtn.addEventListener('click', refreshRosterFromInput);
+  checkFilter.addEventListener('input', renderRoster);
+  checkAllBtn.addEventListener('click', () => { getPlayers().forEach(p => participationMap[p] = true); renderRoster(); });
+  uncheckAllBtn.addEventListener('click', () => { getPlayers().forEach(p => participationMap[p] = false); renderRoster(); });
+
+  document.querySelector('.grade-quick').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const g = btn.dataset.g;
+    rosterList.querySelectorAll('.grade-select').forEach(sel => {
+      sel.value = g;
+      playerGrades[sel.dataset.name] = g;
+    });
+    syncTextareaFromRoster();
+    syncActiveSlot();
+  });
+
+  refreshRosterFromInput();
+
+  toTeamBtn.addEventListener('click', async () => {
+    activePlayers = getPlayers().filter(p => participationMap[p]);
+    if (activePlayers.length < teamSize * 2) {
+      await showAlert(t('teamNotEnoughPlayers', { size: teamSize }));
+      return;
+    }
+    updateGenderModeOptions();
+    teamSizeInfo.textContent = t('chooseFormationHint');
+    teamCard.classList.remove('hidden');
+    bracketSettingsCard.classList.add('hidden');
+    bracketCard.classList.add('hidden');
+    teamCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // ---- save/load slots (1~9): remember participant list + grades + genders ----
+  const slotModeSeg = document.getElementById('slotModeSeg');
+  const slotGrid = document.getElementById('slotGrid');
+  let slotMode = 'save';
+  let activeSlot = null; // slot number currently saved to / loaded from, kept in sync as grades/genders change
+
+  function getSlot(n) {
+    try { return JSON.parse(localStorage.getItem('tb_slot_' + n) || 'null'); }
+    catch (e) { return null; }
+  }
+  function setSlot(n, data) { localStorage.setItem('tb_slot_' + n, JSON.stringify(data)); }
+
+  function saveCurrentToSlot(n, name) {
+    const players = getPlayers();
+    const gradesForSaved = {};
+    const gendersForSaved = {};
+    players.forEach(p => {
+      gradesForSaved[p] = playerGrades[p] || 'C';
+      gendersForSaved[p] = playerGenders[p] || 'M';
+    });
+    const existing = getSlot(n);
+    const finalName = name !== undefined ? name : (existing ? existing.name : '');
+    setSlot(n, { players, grades: gradesForSaved, genders: gendersForSaved, name: finalName || '' });
+  }
+
+  function syncActiveSlot() {
+    if (activeSlot === null) return;
+    saveCurrentToSlot(activeSlot);
+    renderSlots();
+  }
+
+  function deleteSlot(n) {
+    localStorage.removeItem('tb_slot_' + n);
+    if (activeSlot === n) activeSlot = null;
+  }
+
+  function renderSlots() {
+    slotGrid.innerHTML = '';
+    for (let n = 1; n <= 9; n++) {
+      const data = getSlot(n);
+      const btn = document.createElement('div');
+      btn.className = 'slot-btn' + (data ? ' filled' : '') + (n === activeSlot ? ' active-slot' : '');
+      btn.dataset.n = n;
+      const label = data ? (data.name ? data.name : t('slotPeople', { n: data.players.length })) : t('slotEmpty');
+      const subLabel = data && data.name ? `<span class="slot-sub">${t('slotPeople', { n: data.players.length })}</span>` : '';
+      const renameBtn = data ? `<button class="slot-rename-btn" data-n="${n}">✎</button>` : '';
+      const deleteBtn = data ? `<button class="slot-delete-btn" data-n="${n}">✕</button>` : '';
+      btn.innerHTML = `<span class="slot-num">${n}</span><span class="slot-info">${label}</span>${subLabel}${renameBtn}${deleteBtn}`;
+      slotGrid.appendChild(btn);
+    }
+  }
+  renderSlots();
+
+  slotModeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    slotModeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    slotMode = btn.dataset.mode;
+  });
+
+  slotGrid.addEventListener('click', async (e) => {
+    const deleteBtn = e.target.closest('.slot-delete-btn');
+    if (deleteBtn) {
+      const n = parseInt(deleteBtn.dataset.n, 10);
+      const existing = getSlot(n);
+      if (!existing) return;
+      const ok = await showConfirm(t('slotDeleteConfirm', { n, name: existing.name || t('slotDefaultName', { n }), count: existing.players.length }));
+      if (!ok) return;
+      deleteSlot(n);
+      renderSlots();
+      return;
+    }
+    const renameBtn = e.target.closest('.slot-rename-btn');
+    if (renameBtn) {
+      const n = parseInt(renameBtn.dataset.n, 10);
+      const existing = getSlot(n);
+      const nameInput = await showPrompt(t('slotNamePrompt'), existing ? existing.name || '' : '');
+      if (nameInput === null || !existing) return;
+      setSlot(n, Object.assign({}, existing, { name: nameInput.trim() }));
+      renderSlots();
+      return;
+    }
+    const btn = e.target.closest('.slot-btn');
+    if (!btn) return;
+    const n = parseInt(btn.dataset.n, 10);
+    if (slotMode === 'save') {
+      const players = getPlayers();
+      if (!players.length) { await showAlert(t('slotSaveConfirm')); return; }
+      saveCurrentToSlot(n);
+      activeSlot = n;
+      renderSlots();
+    } else {
+      const data = getSlot(n);
+      if (!data) { await showAlert(t('slotEmptyMsg', { n })); return; }
+      playersInput.value = data.players
+        .map(p => `${p},${(data.genders && data.genders[p]) === 'F' ? t('genderFemale') : t('genderMale')},${(data.grades && data.grades[p]) || 'C'}`)
+        .join('\n');
+      playerGrades = Object.assign({}, data.grades);
+      playerGenders = Object.assign({}, data.genders || {});
+      participationMap = {};
+      activeSlot = n;
+      renderSlots();
+      updatePlayerCount();
+      renderRoster();
+    }
+  });
+
+  // ---- STEP 4: team formation ----
+  const teamCard = document.getElementById('teamCard');
+  const genderModeSeg = document.getElementById('genderModeSeg');
+  const teamModeSeg = document.getElementById('teamModeSeg');
+  const teamSizeInfo = document.getElementById('teamSizeInfo');
+  const makeTeamsBtn = document.getElementById('makeTeamsBtn');
+  const remakeTeamsBtn = document.getElementById('remakeTeamsBtn');
+  const teamsOut = document.getElementById('teamsOut');
+  const bracketSettingsCard = document.getElementById('bracketSettingsCard');
+  const bracketCard = document.getElementById('bracketCard');
+  let teamMode = 'balance';
+  let genderMode = 'all';
+  let currentTeams = [];
+  let currentTeamGroups = null; // set when genderMode === 'split': [{label, teams}]
+
+  function updateGenderModeOptions() {
+    const opts = teamSize === 2
+      ? [{ v: 'mm', label: t('genderModeMM') }, { v: 'ff', label: t('genderModeFF') }, { v: 'split', label: t('genderModeSplitDoubles') }, { v: 'mix', label: t('genderModeMix') }, { v: 'all', label: t('genderModeAllDoubles') }]
+      : [{ v: 'm', label: t('genderModeM') }, { v: 'f', label: t('genderModeF') }, { v: 'split', label: t('genderModeSplitTeam') }, { v: 'all', label: t('genderModeAllTeam') }];
+    if (!opts.some(o => o.v === genderMode)) genderMode = 'all';
+    genderModeSeg.innerHTML = opts.map(o => `<button data-mode="${o.v}" class="${o.v === genderMode ? 'active' : ''}">${o.label}</button>`).join('');
+  }
+  updateGenderModeOptions();
+
+  genderModeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    genderModeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    genderMode = btn.dataset.mode;
+  });
+
+  teamModeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    teamModeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    teamMode = btn.dataset.mode;
+  });
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // snake draft distribution across teamCount teams; if orderedPlayers is
+  // sorted by grade (strong -> weak), this balances total skill per team
+  // (e.g. with 2 teams: strongest+weakest together, 2nd+2nd-weakest, ...).
+  function snakeDistribute(orderedPlayers, teamCount) {
+    const teams = Array.from({ length: teamCount }, () => []);
+    let dir = 1, t = 0;
+    for (let i = 0; i < orderedPlayers.length; i++) {
+      teams[t].push(orderedPlayers[i]);
+      t += dir;
+      if (t === teamCount) { t = teamCount - 1; dir = -1; }
+      else if (t < 0) { t = 0; dir = 1; }
+    }
+    return teams;
+  }
+
+  // groups players into contiguous same-tier chunks instead of alternating
+  // (e.g. with 2 teams: the two strongest together, the two weakest
+  // together) — used by "동급 편성" so similarly-graded players team up.
+  function chunkDistribute(orderedPlayers, teamCount) {
+    const perTeam = Math.floor(orderedPlayers.length / teamCount);
+    const teams = [];
+    for (let t = 0; t < teamCount; t++) teams.push(orderedPlayers.slice(t * perTeam, (t + 1) * perTeam));
+    return teams;
+  }
+
+  // builds teams from one pool of players (balance/tier/random), splitting
+  // off any remainder into its own smaller team.
+  function buildTeamsFromPool(pool) {
+    const teamCount = Math.floor(pool.length / teamSize);
+    if (teamCount < 1) return { teams: [], count: 0, leftover: pool.length };
+    const ordered = teamMode === 'random'
+      ? shuffle(pool)
+      : pool.slice().sort((a, b) => effectiveSkill(b) - effectiveSkill(a));
+    const mainPlayers = ordered.slice(0, teamCount * teamSize);
+    const leftoverPlayers = ordered.slice(teamCount * teamSize);
+    const teams = teamMode === 'tier'
+      ? chunkDistribute(mainPlayers, teamCount)
+      : snakeDistribute(mainPlayers, teamCount);
+    if (leftoverPlayers.length > 0) teams.push(leftoverPlayers);
+    return { teams, count: teamCount, leftover: leftoverPlayers.length };
+  }
+
+  function buildTeams() {
+    const players = activePlayers;
+
+    if (genderMode === 'mix') {
+      const males = players.filter(p => playerGenders[p] === 'M');
+      const females = players.filter(p => playerGenders[p] === 'F');
+      const pairCount = Math.min(males.length, females.length);
+      if (pairCount < 1) return { teams: [], info: t('mixNeedBoth') };
+      const rank = (list) => teamMode === 'random'
+        ? shuffle(list)
+        : list.slice().sort((a, b) => effectiveSkill(b) - effectiveSkill(a));
+      const orderedM = rank(males);
+      const orderedF = rank(females);
+      const teams = [];
+      for (let i = 0; i < pairCount; i++) teams.push([orderedM[i], orderedF[i]]);
+      const leftover = males.length + females.length - pairCount * 2;
+      const info = `${t('genderModeMix')} ${pairCount}` + (leftover > 0 ? t('splitLeftover', { n: leftover }) : '.');
+      return { teams, info };
+    }
+
+    if (genderMode === 'split') {
+      const males = players.filter(p => playerGenders[p] === 'M');
+      const females = players.filter(p => playerGenders[p] === 'F');
+      const mRes = buildTeamsFromPool(males);
+      const fRes = buildTeamsFromPool(females);
+      const teams = [...mRes.teams, ...fRes.teams];
+      if (!teams.length) return { teams: [], info: t('splitNotEnough') };
+      const parts = [];
+      if (mRes.count > 0) parts.push(t('splitMaleTeams', { n: mRes.count }) + (mRes.leftover > 0 ? t('splitLeftover', { n: mRes.leftover }) : ''));
+      else if (males.length > 0) parts.push(t('splitMaleShort', { n: males.length }));
+      if (fRes.count > 0) parts.push(t('splitFemaleTeams', { n: fRes.count }) + (fRes.leftover > 0 ? t('splitLeftover', { n: fRes.leftover }) : ''));
+      else if (females.length > 0) parts.push(t('splitFemaleShort', { n: females.length }));
+      const groups = [{ label: 'M', teams: mRes.teams }, { label: 'F', teams: fRes.teams }].filter(g => g.teams.length > 0);
+      return { teams, groups, info: parts.join(', ') + '.' };
+    }
+
+    let pool = players;
+    let genderLabelKey = '';
+    if (genderMode === 'mm' || genderMode === 'm') { pool = players.filter(p => playerGenders[p] === 'M'); genderLabelKey = 'M'; }
+    else if (genderMode === 'ff' || genderMode === 'f') { pool = players.filter(p => playerGenders[p] === 'F'); genderLabelKey = 'F'; }
+    const genderLabel = genderLabelKey ? `${translateGroupLabel(genderLabelKey)} ` : '';
+
+    const result = buildTeamsFromPool(pool);
+    if (result.count < 1) return { teams: [], info: t('genderShort', { label: genderLabel }) };
+    const excluded = players.length - pool.length;
+    const info = t('genderTeamsFormed', { label: genderLabel, n: result.count, size: teamSize })
+      + (result.leftover > 0 ? t('leftoverTeam', { n: result.leftover }) : '')
+      + (excluded > 0 ? t('oppositeExcluded', { n: excluded }) : '')
+      + '.';
+    return { teams: result.teams, info };
+  }
+
+  function translateGroupLabel(label) {
+    if (label === 'M') return t('groupMaleLabel');
+    if (label === 'F') return t('groupFemaleLabel');
+    return label;
+  }
+
+  function teamAvgLabel(team) {
+    const vals = team.map(p => effectiveSkill(p));
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return t('avgLabel', { v: avg.toFixed(1) });
+  }
+
+  function renderTeamCard(team, label) {
+    const div = document.createElement('div');
+    div.className = 'group-card';
+    const listHtml = team.map(p => `<li>${p} <span class="g">(${playerGenders[p] === 'F' ? t('genderFemale') : t('genderMale')}/${playerGrades[p] || 'C'})</span></li>`).join('');
+    const sizeTag = team.length !== teamSize ? t('minorTeamTag', { n: team.length }) : '';
+    div.innerHTML = `<h3>${label}${sizeTag}<span class="avg-tag">${teamAvgLabel(team)}</span></h3><ul>${listHtml}</ul>`;
+    return div;
+  }
+
+  function renderTeams(teams) {
+    teamsOut.innerHTML = '';
+    if (currentTeamGroups) {
+      currentTeamGroups.forEach(group => {
+        const groupTitle = document.createElement('div');
+        groupTitle.className = 'bracket-group-title';
+        groupTitle.textContent = `${translateGroupLabel(group.label)} ${t('groupTeamsSuffix')}`;
+        teamsOut.appendChild(groupTitle);
+        group.teams.forEach((team, i) => teamsOut.appendChild(renderTeamCard(team, t('teamLabel', { n: i + 1 }))));
+      });
+    } else {
+      teams.forEach((team, i) => teamsOut.appendChild(renderTeamCard(team, t('teamLabel', { n: i + 1 }))));
+    }
+  }
+
+  function doMakeTeams() {
+    const result = buildTeams();
+    currentTeams = result.teams;
+    currentTeamGroups = result.groups || null;
+    teamSizeInfo.textContent = result.info;
+    if (!currentTeams.length) {
+      teamsOut.innerHTML = '';
+      remakeTeamsBtn.classList.add('hidden');
+      bracketSettingsCard.classList.add('hidden');
+      return;
+    }
+    renderTeams(currentTeams);
+    remakeTeamsBtn.classList.remove('hidden');
+    bracketSettingsCard.classList.remove('hidden');
+    bracketSettingsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  makeTeamsBtn.addEventListener('click', doMakeTeams);
+  remakeTeamsBtn.addEventListener('click', doMakeTeams);
+
+  // ---- STEP 5+6: bracket (same as before, entrants = team labels) ----
+  const bracketModeSeg = document.getElementById('bracketModeSeg');
+  const rotationHint = document.getElementById('rotationHint');
+  const courtCountRow = document.getElementById('courtCountRow');
+  const courtCountInput = document.getElementById('courtCount');
+  const makeBracketBtn = document.getElementById('makeBracketBtn');
+  const bracketOut = document.getElementById('bracketOut');
+  const shareBtn = document.getElementById('shareBtn');
+  let bracketMode = 'single';
+
+  bracketModeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    bracketModeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    bracketMode = btn.dataset.mode;
+    const isRotation = bracketMode === 'rotation';
+    rotationHint.classList.toggle('hidden', !isRotation);
+    courtCountRow.classList.toggle('hidden', !isRotation);
+    if (isRotation) {
+      const matchPlayers = teamSize * 2;
+      courtCountInput.value = Math.max(1, Math.floor(activePlayers.length / matchPlayers));
+    }
+  });
+
+  let bracketState = null; // { groups: [ { label, rounds: [ [ {slots:[a,b], scores, done, winner} ... ] ... ] } ... ] }
+
+  function makeMatch(a, b) {
+    return { slots: [a, b], scores: [null, null], done: false, winner: null };
+  }
+
+  function buildRoundsFor(entrants) {
+    const size = nextPow2(entrants.length);
+    const seeded = entrants.slice();
+    while (seeded.length < size) seeded.push(null); // null = BYE
+    const round0 = [];
+    for (let i = 0; i < seeded.length; i += 2) round0.push(makeMatch(seeded[i], seeded[i + 1]));
+    const rounds = [round0];
+    let count = round0.length;
+    while (count > 1) {
+      count = count / 2;
+      rounds.push(Array.from({ length: count }, () => makeMatch(null, null)));
+    }
+    return rounds;
+  }
+
+  // groupsInput: [{ label: string|null, entrants: string[] }]
+  function initBracket(groupsInput) {
+    bracketState = { groups: groupsInput.map(g => ({ label: g.label, rounds: buildRoundsFor(g.entrants) })) };
+    resolveByes();
+  }
+
+  function resolveByes() {
+    // Only round 0 can contain true byes (padding added to reach a power of
+    // two). In later rounds a null slot just means "waiting on the previous
+    // round" — it must never auto-advance just because the other slot is
+    // already filled; it has to wait for both slots and an actual score entry.
+    bracketState.groups.forEach((group, gi) => {
+      const round0 = group.rounds[0];
+      if (!round0) return;
+      round0.forEach((m, mi) => {
+        const [a, b] = m.slots;
+        const isBye = (a === null) !== (b === null);
+        if (!m.done && isBye) {
+          m.done = true;
+          m.winner = a !== null ? a : b;
+          propagateWinner(gi, 0, mi, m.winner);
+        }
+      });
+    });
+  }
+
+  function propagateWinner(gi, ri, mi, winnerName) {
+    const rounds = bracketState.groups[gi].rounds;
+    if (ri + 1 >= rounds.length) return; // champion, nothing further
+    const nextRound = rounds[ri + 1];
+    const nextMatchIndex = Math.floor(mi / 2);
+    const slotIndex = mi % 2;
+    nextRound[nextMatchIndex].slots[slotIndex] = winnerName;
+    resolveByes();
+  }
+
+  function resetDownstream(gi, ri, mi) {
+    const rounds = bracketState.groups[gi].rounds;
+    if (ri + 1 >= rounds.length) return;
+    const nextRound = rounds[ri + 1];
+    const nextMatchIndex = Math.floor(mi / 2);
+    const slotIndex = mi % 2;
+    const nextMatch = nextRound[nextMatchIndex];
+    if (nextMatch.slots[slotIndex] !== null) {
+      if (nextMatch.done) resetDownstream(gi, ri + 1, nextMatchIndex);
+      nextMatch.slots[slotIndex] = null;
+      nextMatch.scores = [null, null];
+      nextMatch.done = false;
+      nextMatch.winner = null;
+    }
+  }
+
+  async function finishMatch(gi, ri, mi, scoreA, scoreB) {
+    if (scoreA === scoreB) { await showAlert(t('drawNotAllowed')); return; }
+    const m = bracketState.groups[gi].rounds[ri][mi];
+    m.scores = [scoreA, scoreB];
+    m.done = true;
+    m.winner = scoreA > scoreB ? m.slots[0] : m.slots[1];
+    propagateWinner(gi, ri, mi, m.winner);
+    renderBracket();
+  }
+
+  function quickFinish(gi, ri, mi, sideIdx) {
+    const m = bracketState.groups[gi].rounds[ri][mi];
+    m.scores = [null, null];
+    m.done = true;
+    m.winner = m.slots[sideIdx];
+    propagateWinner(gi, ri, mi, m.winner);
+    renderBracket();
+  }
+
+  function editMatch(gi, ri, mi) {
+    resetDownstream(gi, ri, mi);
+    const m = bracketState.groups[gi].rounds[ri][mi];
+    m.done = false;
+    m.scores = [null, null];
+    m.winner = null;
+    renderBracket();
+  }
+
+  function nextPow2(n) { let p = 1; while (p < n) p *= 2; return p; }
+
+  function sideHtml(m, idx, gi, ri, mi) {
+    const name = m.slots[idx];
+    if (name === null) return `<div class="side tbd">${m.done ? t('bye') : t('tbd')}</div>`;
+    if (m.done) {
+      const isWinner = m.winner === name;
+      const scoreLabel = m.scores[idx] !== null ? `<span class="score-tag">${m.scores[idx]}</span>` : '';
+      return `<div class="side ${isWinner ? 'winner' : ''}"><span>${name}</span>${scoreLabel}</div>`;
+    }
+    const otherName = m.slots[1 - idx];
+    if (otherName !== null) {
+      return `<div class="side"><span class="side-name clickable" data-gi="${gi}" data-ri="${ri}" data-mi="${mi}" data-side="${idx}">${name}</span><input type="number" inputmode="numeric" class="score-input" data-gi="${gi}" data-ri="${ri}" data-mi="${mi}" data-side="${idx}" placeholder="${t('scorePlaceholder')}"></div>`;
+    }
+    return `<div class="side">${name}</div>`;
+  }
+
+  function renderMatchEl(m, gi, ri, mi, isFinal) {
+    const div = document.createElement('div');
+    div.className = 'match';
+    div.innerHTML = sideHtml(m, 0, gi, ri, mi) + sideHtml(m, 1, gi, ri, mi);
+    const bothKnown = m.slots[0] !== null && m.slots[1] !== null;
+    if (bothKnown && !m.done) {
+      const btn = document.createElement('button');
+      btn.className = 'finish-btn';
+      btn.textContent = isFinal ? t('confirmChampionBtn') : t('finishBtn');
+      btn.dataset.gi = gi;
+      btn.dataset.ri = ri;
+      btn.dataset.mi = mi;
+      div.appendChild(btn);
+    } else if (m.done && bothKnown) {
+      const btn = document.createElement('button');
+      btn.className = 'edit-btn';
+      btn.textContent = t('editBtn');
+      btn.dataset.gi = gi;
+      btn.dataset.ri = ri;
+      btn.dataset.mi = mi;
+      div.appendChild(btn);
+    }
+    return div;
+  }
+
+  function renderSingleElim() {
+    const container = document.createElement('div');
+    bracketState.groups.forEach((group, gi) => {
+      if (group.label) {
+        const groupTitle = document.createElement('div');
+        groupTitle.className = 'bracket-group-title';
+        groupTitle.textContent = `${translateGroupLabel(group.label)} ${t('singleTitle')}`;
+        container.appendChild(groupTitle);
+      }
+      const sectionsWrap = document.createElement('div');
+      sectionsWrap.className = 'bracket-sections';
+      group.rounds.forEach((round, ri) => {
+        const isFinal = ri === group.rounds.length - 1;
+        const section = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'round-section-title';
+        title.textContent = isFinal ? t('finalRound') : t('roundN', { n: ri + 1 });
+        section.appendChild(title);
+        const list = document.createElement('div');
+        list.className = 'round-section-list';
+        round.forEach((m, mi) => list.appendChild(renderMatchEl(m, gi, ri, mi, isFinal)));
+        section.appendChild(list);
+        sectionsWrap.appendChild(section);
+      });
+      container.appendChild(sectionsWrap);
+    });
+    return container;
+  }
+
+  // ---- double elimination: winners bracket (WB) + losers bracket (LB) +
+  // grand final (with a reset match if the LB side wins the first GF) ----
+  let deState = null; // { groups: [ { label, wb, lb, gf, gfReset, R, champion } ] }
+
+  function buildDoubleElimGroup(entrants) {
+    const size = nextPow2(entrants.length);
+    const R = Math.log2(size);
+    const wb = buildRoundsFor(entrants);
+    const lb = [];
+    if (R >= 2) {
+      const totalLB = 2 * (R - 1);
+      let count = size / 4;
+      for (let i = 0; i < totalLB; i++) {
+        lb.push(Array.from({ length: count }, () => makeMatch(null, null)));
+        if (i % 2 === 1) count = count / 2;
+      }
+    }
+    return { wb, lb, gf: makeMatch(null, null), gfReset: null, R, champion: null };
+  }
+
+  // groupsInput: [{ label: string|null, entrants: string[] }]
+  function initDoubleElim(groupsInput) {
+    deState = { groups: groupsInput.map(g => ({ label: g.label, ...buildDoubleElimGroup(g.entrants) })) };
+    deState.groups.forEach((g, gi) => deResolveWBByes(gi));
+  }
+
+  // sets an LB slot and auto-resolves the match immediately if the other
+  // side is a confirmed 'BYE' (never treats a still-pending null as a bye).
+  function deSetLBSlot(gi, lbRoundIdx, matchIdx, slotIdx, value) {
+    const m = deState.groups[gi].lb[lbRoundIdx][matchIdx];
+    m.slots[slotIdx] = value;
+    const other = m.slots[1 - slotIdx];
+    if (!m.done && value !== null && other !== null) {
+      if (value === 'BYE' && other === 'BYE') { m.done = true; m.winner = null; }
+      else if (value === 'BYE') { m.done = true; m.winner = other; deLBPropagate(gi, lbRoundIdx, matchIdx, other); }
+      else if (other === 'BYE') { m.done = true; m.winner = value; deLBPropagate(gi, lbRoundIdx, matchIdx, value); }
+    }
+  }
+
+  function deRouteLoserToLB(gi, wbRoundIdx, wbMatchIdx, loserValue) {
+    const group = deState.groups[gi];
+    if (!group.lb.length) return;
+    if (wbRoundIdx === 0) {
+      deSetLBSlot(gi, 0, Math.floor(wbMatchIdx / 2), wbMatchIdx % 2, loserValue);
+    } else {
+      deSetLBSlot(gi, 2 * wbRoundIdx - 1, wbMatchIdx, 1, loserValue);
+    }
+  }
+
+  function deResolveWBByes(gi) {
+    const wb = deState.groups[gi].wb;
+    wb[0].forEach((m, mi) => {
+      const [a, b] = m.slots;
+      const isBye = (a === null) !== (b === null);
+      if (!m.done && isBye) {
+        m.done = true;
+        m.winner = a !== null ? a : b;
+        deWBAdvance(gi, 0, mi, m.winner, null);
+      }
+    });
+  }
+
+  function deWBAdvance(gi, ri, mi, winner, loser) {
+    const wb = deState.groups[gi].wb;
+    if (ri + 1 < wb.length) wb[ri + 1][Math.floor(mi / 2)].slots[mi % 2] = winner;
+    else deState.groups[gi].gf.slots[0] = winner;
+    deRouteLoserToLB(gi, ri, mi, loser === null ? 'BYE' : loser);
+  }
+
+  function deLBPropagate(gi, lbRoundIdx, matchIdx, winnerName) {
+    const group = deState.groups[gi];
+    if (lbRoundIdx === group.lb.length - 1) { group.gf.slots[1] = winnerName; return; }
+    const nextRoundIdx = lbRoundIdx + 1;
+    const nextIsConsolidate = nextRoundIdx % 2 === 0;
+    if (nextIsConsolidate) deSetLBSlot(gi, nextRoundIdx, Math.floor(matchIdx / 2), matchIdx % 2, winnerName);
+    else deSetLBSlot(gi, nextRoundIdx, matchIdx, 0, winnerName);
+  }
+
+  async function deFinishWB(gi, ri, mi, scoreA, scoreB) {
+    if (scoreA === scoreB) { await showAlert(t('drawNotAllowed')); return; }
+    const m = deState.groups[gi].wb[ri][mi];
+    m.scores = [scoreA, scoreB];
+    m.done = true;
+    m.winner = scoreA > scoreB ? m.slots[0] : m.slots[1];
+    const loser = m.winner === m.slots[0] ? m.slots[1] : m.slots[0];
+    deWBAdvance(gi, ri, mi, m.winner, loser);
+    renderBracket();
+  }
+
+  function deQuickWB(gi, ri, mi, sideIdx) {
+    const m = deState.groups[gi].wb[ri][mi];
+    m.scores = [null, null];
+    m.done = true;
+    m.winner = m.slots[sideIdx];
+    const loser = m.slots[1 - sideIdx];
+    deWBAdvance(gi, ri, mi, m.winner, loser);
+    renderBracket();
+  }
+
+  function deCanEditWB(gi, ri, mi) {
+    const group = deState.groups[gi];
+    if (ri + 1 < group.wb.length) { if (group.wb[ri + 1][Math.floor(mi / 2)].done) return false; }
+    else if (group.gf.done) return false;
+    if (group.lb.length) {
+      const lbMatch = ri === 0 ? group.lb[0][Math.floor(mi / 2)] : group.lb[2 * ri - 1][mi];
+      if (lbMatch.done) return false;
+    }
+    return true;
+  }
+
+  async function deEditWB(gi, ri, mi) {
+    if (!deCanEditWB(gi, ri, mi)) { await showAlert(t('alreadyUsedNextRound')); return; }
+    const group = deState.groups[gi];
+    const m = group.wb[ri][mi];
+    m.done = false; m.scores = [null, null]; m.winner = null;
+    if (ri + 1 < group.wb.length) group.wb[ri + 1][Math.floor(mi / 2)].slots[mi % 2] = null;
+    else group.gf.slots[0] = null;
+    if (group.lb.length) {
+      if (ri === 0) group.lb[0][Math.floor(mi / 2)].slots[mi % 2] = null;
+      else group.lb[2 * ri - 1][mi].slots[1] = null;
+    }
+    renderBracket();
+  }
+
+  async function deFinishLB(gi, ri, mi, scoreA, scoreB) {
+    if (scoreA === scoreB) { await showAlert(t('drawNotAllowed')); return; }
+    const m = deState.groups[gi].lb[ri][mi];
+    m.scores = [scoreA, scoreB];
+    m.done = true;
+    m.winner = scoreA > scoreB ? m.slots[0] : m.slots[1];
+    deLBPropagate(gi, ri, mi, m.winner);
+    renderBracket();
+  }
+
+  function deQuickLB(gi, ri, mi, sideIdx) {
+    const m = deState.groups[gi].lb[ri][mi];
+    m.scores = [null, null];
+    m.done = true;
+    m.winner = m.slots[sideIdx];
+    deLBPropagate(gi, ri, mi, m.winner);
+    renderBracket();
+  }
+
+  function deCanEditLB(gi, ri, mi) {
+    const group = deState.groups[gi];
+    const isLast = ri === group.lb.length - 1;
+    if (isLast) { if (group.gf.done) return false; }
+    else {
+      const nextRoundIdx = ri + 1;
+      const nextMatch = (nextRoundIdx % 2 === 0) ? group.lb[nextRoundIdx][Math.floor(mi / 2)] : group.lb[nextRoundIdx][mi];
+      if (nextMatch.done) return false;
+    }
+    return true;
+  }
+
+  async function deEditLB(gi, ri, mi) {
+    if (!deCanEditLB(gi, ri, mi)) { await showAlert(t('alreadyUsedNext')); return; }
+    const group = deState.groups[gi];
+    const m = group.lb[ri][mi];
+    m.done = false; m.scores = [null, null]; m.winner = null;
+    const isLast = ri === group.lb.length - 1;
+    if (isLast) group.gf.slots[1] = null;
+    else {
+      const nextRoundIdx = ri + 1;
+      if (nextRoundIdx % 2 === 0) group.lb[nextRoundIdx][Math.floor(mi / 2)].slots[mi % 2] = null;
+      else group.lb[nextRoundIdx][mi].slots[0] = null;
+    }
+    renderBracket();
+  }
+
+  async function deFinishGF(gi, scoreA, scoreB) {
+    if (scoreA === scoreB) { await showAlert(t('drawNotAllowed')); return; }
+    const group = deState.groups[gi];
+    const m = group.gf;
+    m.scores = [scoreA, scoreB];
+    m.done = true;
+    m.winner = scoreA > scoreB ? m.slots[0] : m.slots[1];
+    if (m.winner === m.slots[0]) group.champion = m.winner;
+    else group.gfReset = makeMatch(m.slots[0], m.slots[1]);
+    renderBracket();
+  }
+
+  function deQuickGF(gi, sideIdx) {
+    const group = deState.groups[gi];
+    const m = group.gf;
+    m.scores = [null, null];
+    m.done = true;
+    m.winner = m.slots[sideIdx];
+    if (sideIdx === 0) group.champion = m.winner;
+    else group.gfReset = makeMatch(m.slots[0], m.slots[1]);
+    renderBracket();
+  }
+
+  async function deEditGF(gi) {
+    const group = deState.groups[gi];
+    if (group.gfReset && group.gfReset.done) { await showAlert(t('resetFirst')); return; }
+    group.gf.done = false; group.gf.scores = [null, null]; group.gf.winner = null;
+    group.champion = null; group.gfReset = null;
+    renderBracket();
+  }
+
+  async function deFinishGFReset(gi, scoreA, scoreB) {
+    if (scoreA === scoreB) { await showAlert(t('drawNotAllowed')); return; }
+    const group = deState.groups[gi];
+    const m = group.gfReset;
+    m.scores = [scoreA, scoreB];
+    m.done = true;
+    m.winner = scoreA > scoreB ? m.slots[0] : m.slots[1];
+    group.champion = m.winner;
+    renderBracket();
+  }
+
+  function deQuickGFReset(gi, sideIdx) {
+    const group = deState.groups[gi];
+    const m = group.gfReset;
+    m.scores = [null, null];
+    m.done = true;
+    m.winner = m.slots[sideIdx];
+    group.champion = m.winner;
+    renderBracket();
+  }
+
+  function deEditGFReset(gi) {
+    const group = deState.groups[gi];
+    group.gfReset.done = false; group.gfReset.scores = [null, null]; group.gfReset.winner = null;
+    group.champion = null;
+    renderBracket();
+  }
+
+  function deSideHtml(m, idx, gi, part, ri, mi) {
+    const name = m.slots[idx];
+    if (name === null) return `<div class="side tbd">${t('tbd')}</div>`;
+    if (name === 'BYE') return `<div class="side tbd">${t('bye')}</div>`;
+    if (m.done) {
+      const isWinner = m.winner === name;
+      const scoreLabel = m.scores[idx] !== null ? `<span class="score-tag">${m.scores[idx]}</span>` : '';
+      return `<div class="side ${isWinner ? 'winner' : ''}"><span>${name}</span>${scoreLabel}</div>`;
+    }
+    const other = m.slots[1 - idx];
+    if (other !== null && other !== 'BYE') {
+      return `<div class="side"><span class="side-name clickable de-name" data-gi="${gi}" data-part="${part}" data-ri="${ri === null || ri === undefined ? '' : ri}" data-mi="${mi === null || mi === undefined ? '' : mi}" data-side="${idx}">${name}</span><input type="number" inputmode="numeric" class="score-input de-score" data-gi="${gi}" data-part="${part}" data-ri="${ri === null || ri === undefined ? '' : ri}" data-mi="${mi === null || mi === undefined ? '' : mi}" data-side="${idx}" placeholder="${t('scorePlaceholder')}"></div>`;
+    }
+    return `<div class="side">${name}</div>`;
+  }
+
+  function renderDeMatchEl(m, gi, part, ri, mi, finishLabel) {
+    const div = document.createElement('div');
+    div.className = 'match';
+    div.innerHTML = deSideHtml(m, 0, gi, part, ri, mi) + deSideHtml(m, 1, gi, part, ri, mi);
+    const bothKnown = m.slots[0] !== null && m.slots[1] !== null && m.slots[0] !== 'BYE' && m.slots[1] !== 'BYE';
+    const riAttr = ri === null || ri === undefined ? '' : ri;
+    const miAttr = mi === null || mi === undefined ? '' : mi;
+    if (bothKnown && !m.done) {
+      const btn = document.createElement('button');
+      btn.className = 'finish-btn de-finish-btn';
+      btn.textContent = finishLabel || t('finishBtn');
+      btn.dataset.gi = gi; btn.dataset.part = part; btn.dataset.ri = riAttr; btn.dataset.mi = miAttr;
+      div.appendChild(btn);
+    } else if (m.done && bothKnown) {
+      const btn = document.createElement('button');
+      btn.className = 'edit-btn de-edit-btn';
+      btn.textContent = t('editBtn');
+      btn.dataset.gi = gi; btn.dataset.part = part; btn.dataset.ri = riAttr; btn.dataset.mi = miAttr;
+      div.appendChild(btn);
+    }
+    return div;
+  }
+
+  function renderDoubleElim() {
+    const container = document.createElement('div');
+    deState.groups.forEach((group, gi) => {
+      if (group.label) {
+        const groupTitleEl = document.createElement('div');
+        groupTitleEl.className = 'bracket-group-title';
+        groupTitleEl.textContent = `${translateGroupLabel(group.label)} ${t('doubleTitle')}`;
+        container.appendChild(groupTitleEl);
+      }
+      const wbTitle = document.createElement('div');
+      wbTitle.className = 'round-section-title';
+      wbTitle.textContent = t('wbTitle');
+      container.appendChild(wbTitle);
+      const wbWrap = document.createElement('div');
+      wbWrap.className = 'bracket-sections';
+      group.wb.forEach((round, ri) => {
+        const isFinal = ri === group.wb.length - 1;
+        const section = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'round-section-title';
+        title.textContent = isFinal ? t('wbFinal') : t('wbRoundN', { n: ri + 1 });
+        section.appendChild(title);
+        const list = document.createElement('div');
+        list.className = 'round-section-list';
+        round.forEach((m, mi) => list.appendChild(renderDeMatchEl(m, gi, 'wb', ri, mi)));
+        section.appendChild(list);
+        wbWrap.appendChild(section);
+      });
+      container.appendChild(wbWrap);
+
+      if (group.lb.length) {
+        const lbTitle = document.createElement('div');
+        lbTitle.className = 'round-section-title';
+        lbTitle.style.marginTop = '18px';
+        lbTitle.textContent = t('lbTitle');
+        container.appendChild(lbTitle);
+        const lbWrap = document.createElement('div');
+        lbWrap.className = 'bracket-sections';
+        group.lb.forEach((round, ri) => {
+          const isFinal = ri === group.lb.length - 1;
+          const section = document.createElement('div');
+          const title = document.createElement('div');
+          title.className = 'round-section-title';
+          title.textContent = isFinal ? t('lbFinal') : t('lbRoundN', { n: ri + 1 });
+          section.appendChild(title);
+          const list = document.createElement('div');
+          list.className = 'round-section-list';
+          round.forEach((m, mi) => list.appendChild(renderDeMatchEl(m, gi, 'lb', ri, mi)));
+          section.appendChild(list);
+          lbWrap.appendChild(section);
+        });
+        container.appendChild(lbWrap);
+      }
+
+      const gfTitle = document.createElement('div');
+      gfTitle.className = 'round-section-title';
+      gfTitle.style.marginTop = '18px';
+      gfTitle.textContent = t('gfTitle');
+      container.appendChild(gfTitle);
+      const gfList = document.createElement('div');
+      gfList.className = 'round-section-list';
+      gfList.appendChild(renderDeMatchEl(group.gf, gi, 'gf', null, null, t('gfFinishBtn')));
+      container.appendChild(gfList);
+
+      if (group.gfReset) {
+        const resetTitle = document.createElement('div');
+        resetTitle.className = 'round-section-title';
+        resetTitle.textContent = t('gfReset');
+        container.appendChild(resetTitle);
+        const resetList = document.createElement('div');
+        resetList.className = 'round-section-list';
+        resetList.appendChild(renderDeMatchEl(group.gfReset, gi, 'gfreset', null, null, t('gfResetFinishBtn')));
+        container.appendChild(resetList);
+      }
+
+      if (group.champion) {
+        const champ = document.createElement('div');
+        champ.className = 'rr-note';
+        champ.textContent = t('championText', { name: group.champion });
+        container.appendChild(champ);
+      }
+    });
+    return container;
+  }
+
+  let rrState = null; // { groups: [ { label, entrants, matches: [{a,b,scoreA,scoreB,done,winner}] } ] }
+
+  function buildRRMatches(entrants) {
+    const matches = [];
+    for (let i = 0; i < entrants.length; i++) {
+      for (let j = i + 1; j < entrants.length; j++) {
+        matches.push({ a: entrants[i], b: entrants[j], scoreA: null, scoreB: null, done: false, winner: null });
+      }
+    }
+    return matches;
+  }
+
+  // groupsInput: [{ label: string|null, entrants: string[] }]
+  function initRoundRobin(groupsInput) {
+    rrState = { groups: groupsInput.map(g => ({ label: g.label, entrants: g.entrants, matches: buildRRMatches(g.entrants) })) };
+  }
+
+  function rrFinish(gi, idx, scoreA, scoreB) {
+    const m = rrState.groups[gi].matches[idx];
+    m.scoreA = scoreA;
+    m.scoreB = scoreB;
+    m.done = true;
+    m.winner = scoreA === scoreB ? 'draw' : (scoreA > scoreB ? m.a : m.b);
+    renderBracket();
+  }
+
+  function rrQuickWin(gi, idx, side) {
+    const m = rrState.groups[gi].matches[idx];
+    m.scoreA = null;
+    m.scoreB = null;
+    m.done = true;
+    m.winner = side === 0 ? m.a : m.b;
+    renderBracket();
+  }
+
+  function rrEdit(gi, idx) {
+    const m = rrState.groups[gi].matches[idx];
+    m.done = false;
+    m.scoreA = null;
+    m.scoreB = null;
+    m.winner = null;
+    renderBracket();
+  }
+
+  function computeStandings(gi) {
+    const group = rrState.groups[gi];
+    const stats = {};
+    group.entrants.forEach(e => { stats[e] = { played: 0, win: 0, draw: 0, loss: 0, points: 0 }; });
+    group.matches.forEach(m => {
+      if (!m.done) return;
+      stats[m.a].played++;
+      stats[m.b].played++;
+      if (m.winner === 'draw') {
+        stats[m.a].draw++; stats[m.b].draw++;
+        stats[m.a].points += 1; stats[m.b].points += 1;
+      } else {
+        const loser = m.winner === m.a ? m.b : m.a;
+        stats[m.winner].win++;
+        stats[m.winner].points += 3;
+        stats[loser].loss++;
+      }
+    });
+    return group.entrants
+      .slice()
+      .sort((x, y) => stats[y].points - stats[x].points || stats[y].win - stats[x].win)
+      .map(name => ({ name, ...stats[name] }));
+  }
+
+  function renderRoundRobinGroup(group, gi) {
+    const wrap = document.createElement('div');
+    if (group.label) {
+      const groupTitle = document.createElement('div');
+      groupTitle.className = 'bracket-group-title';
+      groupTitle.textContent = `${translateGroupLabel(group.label)} ${t('leagueTitle')}`;
+      wrap.appendChild(groupTitle);
+    }
+    if (group.entrants.length > 6) {
+      const note = document.createElement('div');
+      note.className = 'rr-note';
+      note.textContent = t('rrTooMany', { n: group.matches.length });
+      wrap.appendChild(note);
+    }
+
+    const matchList = document.createElement('div');
+    matchList.className = 'rr-matches';
+    group.matches.forEach((m, idx) => {
+      const row = document.createElement('div');
+      row.className = 'rr-match';
+      const nameClass = (name) => m.done ? (m.winner === 'draw' ? '' : (m.winner === name ? 'winner' : 'loser')) : '';
+      if (!m.done) {
+        row.innerHTML = `
+          <span class="rr-name" data-gi="${gi}" data-idx="${idx}" data-side="0">${m.a}</span>
+          <input type="number" inputmode="numeric" class="score-input" data-gi="${gi}" data-idx="${idx}" data-side="0" placeholder="${t('scorePlaceholder')}">
+          <span class="rr-vs">${t('vs')}</span>
+          <input type="number" inputmode="numeric" class="score-input" data-gi="${gi}" data-idx="${idx}" data-side="1" placeholder="${t('scorePlaceholder')}">
+          <span class="rr-name" data-gi="${gi}" data-idx="${idx}" data-side="1">${m.b}</span>
+          <button class="rr-finish" data-gi="${gi}" data-idx="${idx}">${t('finishBtn')}</button>`;
+      } else {
+        const scoreLabel = (v) => v !== null ? `<span class="score-tag">${v}</span>` : '';
+        row.innerHTML = `
+          <span class="rr-name ${nameClass(m.a)}">${m.a}${scoreLabel(m.scoreA)}</span>
+          <span class="rr-vs">${t('vs')}</span>
+          <span class="rr-name ${nameClass(m.b)}">${m.b}${scoreLabel(m.scoreB)}</span>
+          ${m.winner === 'draw' ? `<span class="rr-vs">${t('drawLabel')}</span>` : ''}
+          <button class="rr-edit" data-gi="${gi}" data-idx="${idx}">${t('editBtn')}</button>`;
+      }
+      matchList.appendChild(row);
+    });
+    wrap.appendChild(matchList);
+
+    const standingsTitle = document.createElement('div');
+    standingsTitle.className = 'rr-standings-title';
+    standingsTitle.textContent = t('standingsTitle');
+    wrap.appendChild(standingsTitle);
+
+    const table = document.createElement('table');
+    table.className = 'rr';
+    let rows = `<tr><th>${t('rankCol')}</th><th>${t('nameCol')}</th><th>${t('playedCol')}</th><th>${t('winCol')}</th><th>${t('drawCol')}</th><th>${t('lossCol')}</th><th>${t('pointsCol')}</th></tr>`;
+    computeStandings(gi).forEach((s, i) => {
+      rows += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.played}</td><td>${s.win}</td><td>${s.draw}</td><td>${s.loss}</td><td>${s.points}</td></tr>`;
+    });
+    table.innerHTML = rows;
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function renderRoundRobin() {
+    const container = document.createElement('div');
+    rrState.groups.forEach((group, gi) => {
+      container.appendChild(renderRoundRobinGroup(group, gi));
+    });
+    return container;
+  }
+
+  // ---- casual rotation mode: no ranking, just keep re-pairing players each
+  // round, preferring people who haven't been teammates/opponents yet and
+  // keeping skill balanced within each court's two sides. ----
+  let rotation = null;
+
+  function pairKey(a, b) { return [a, b].sort().join('|'); }
+
+  function initRotation(players) {
+    const matchPlayers = teamSize * 2;
+    const gamesPlayed = {};
+    players.forEach(p => { gamesPlayed[p] = 0; });
+    rotation = {
+      players: players.slice(),
+      matchPlayers,
+      courts: Math.max(1, Math.min(courtCountInput ? parseInt(courtCountInput.value, 10) || 1 : 1, Math.floor(players.length / matchPlayers) || 1)),
+      gamesPlayed,
+      partnerCount: {},
+      opponentCount: {},
+      roundNum: 0,
+      currentCourts: [],
+      benched: []
+    };
+  }
+
+  function rotationArrangementScore(arrangement) {
+    let score = 0;
+    arrangement.forEach(({ teamA, teamB }) => {
+      for (let i = 0; i < teamA.length; i++) for (let j = i + 1; j < teamA.length; j++) score += rotation.partnerCount[pairKey(teamA[i], teamA[j])] || 0;
+      for (let i = 0; i < teamB.length; i++) for (let j = i + 1; j < teamB.length; j++) score += rotation.partnerCount[pairKey(teamB[i], teamB[j])] || 0;
+      teamA.forEach(a => teamB.forEach(b => { score += rotation.opponentCount[pairKey(a, b)] || 0; }));
+    });
+    return score;
+  }
+
+  function generateRotationRound() {
+    const need = rotation.courts * rotation.matchPlayers;
+    const pool = rotation.players.slice().sort((a, b) => rotation.gamesPlayed[a] - rotation.gamesPlayed[b]);
+    const playing = pool.slice(0, need);
+    const benched = pool.slice(need);
+
+    let best = null, bestScore = Infinity;
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const shuffled = shuffle(playing);
+      const arrangement = [];
+      for (let c = 0; c < rotation.courts; c++) {
+        const group = shuffled.slice(c * rotation.matchPlayers, (c + 1) * rotation.matchPlayers)
+          .sort((a, b) => effectiveSkill(b) - effectiveSkill(a));
+        const twoTeams = snakeDistribute(group, 2);
+        arrangement.push({ teamA: twoTeams[0], teamB: twoTeams[1] });
+      }
+      const score = rotationArrangementScore(arrangement);
+      if (score < bestScore) { bestScore = score; best = arrangement; }
+    }
+
+    rotation.roundNum++;
+    rotation.benched = benched;
+    rotation.currentCourts = best.map(m => ({
+      teamA: m.teamA, teamB: m.teamB, scoreA: null, scoreB: null, done: false, winner: null, historyRecorded: false
+    }));
+    renderBracket();
+  }
+
+  function rotationUpdateHistory(m, delta) {
+    for (let i = 0; i < m.teamA.length; i++) for (let j = i + 1; j < m.teamA.length; j++) {
+      const k = pairKey(m.teamA[i], m.teamA[j]);
+      rotation.partnerCount[k] = (rotation.partnerCount[k] || 0) + delta;
+    }
+    for (let i = 0; i < m.teamB.length; i++) for (let j = i + 1; j < m.teamB.length; j++) {
+      const k = pairKey(m.teamB[i], m.teamB[j]);
+      rotation.partnerCount[k] = (rotation.partnerCount[k] || 0) + delta;
+    }
+    m.teamA.forEach(a => m.teamB.forEach(b => {
+      const k = pairKey(a, b);
+      rotation.opponentCount[k] = (rotation.opponentCount[k] || 0) + delta;
+    }));
+    [...m.teamA, ...m.teamB].forEach(p => { rotation.gamesPlayed[p] = (rotation.gamesPlayed[p] || 0) + delta; });
+  }
+
+  function rotationFinish(idx, scoreA, scoreB) {
+    const m = rotation.currentCourts[idx];
+    m.scoreA = scoreA;
+    m.scoreB = scoreB;
+    m.done = true;
+    m.winner = scoreA === scoreB ? 'draw' : (scoreA > scoreB ? 'A' : 'B');
+    if (!m.historyRecorded) { rotationUpdateHistory(m, 1); m.historyRecorded = true; }
+    renderBracket();
+  }
+
+  function rotationQuickWin(idx, side) {
+    const m = rotation.currentCourts[idx];
+    m.scoreA = null;
+    m.scoreB = null;
+    m.done = true;
+    m.winner = side === 0 ? 'A' : 'B';
+    if (!m.historyRecorded) { rotationUpdateHistory(m, 1); m.historyRecorded = true; }
+    renderBracket();
+  }
+
+  function rotationEdit(idx) {
+    const m = rotation.currentCourts[idx];
+    if (m.historyRecorded) { rotationUpdateHistory(m, -1); m.historyRecorded = false; }
+    m.done = false;
+    m.scoreA = null;
+    m.scoreB = null;
+    m.winner = null;
+    renderBracket();
+  }
+
+  function rotationSideHtml(m, side) {
+    const team = side === 0 ? m.teamA : m.teamB;
+    const name = team.join('・');
+    if (m.done) {
+      const isWinner = m.winner !== 'draw' && m.winner === (side === 0 ? 'A' : 'B');
+      const scoreVal = side === 0 ? m.scoreA : m.scoreB;
+      const scoreLabel = scoreVal !== null ? `<span class="score-tag">${scoreVal}</span>` : '';
+      return `<div class="side ${isWinner ? 'winner' : ''}"><span>${name}</span>${scoreLabel}</div>`;
+    }
+    return `<div class="side"><span class="side-name clickable rot-name" data-idx="${m._idx}" data-side="${side}">${name}</span><input type="number" inputmode="numeric" class="score-input" data-idx="${m._idx}" data-side="${side}" placeholder="${t('scorePlaceholder')}"></div>`;
+  }
+
+  function renderRotationMatchEl(m, idx) {
+    m._idx = idx;
+    const div = document.createElement('div');
+    div.className = 'match';
+    div.innerHTML = rotationSideHtml(m, 0) + rotationSideHtml(m, 1);
+    if (!m.done) {
+      const btn = document.createElement('button');
+      btn.className = 'finish-btn rot-finish-btn';
+      btn.textContent = t('finishBtn');
+      btn.dataset.idx = idx;
+      div.appendChild(btn);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'edit-btn rot-edit-btn';
+      btn.textContent = t('editBtn');
+      btn.dataset.idx = idx;
+      div.appendChild(btn);
+    }
+    return div;
+  }
+
+  function renderRotation() {
+    const container = document.createElement('div');
+    const header = document.createElement('div');
+    header.className = 'bracket-group-title';
+    header.textContent = t('rotationRoundHeader', { n: rotation.roundNum, courts: rotation.courts });
+    container.appendChild(header);
+
+    if (rotation.benched.length) {
+      const note = document.createElement('div');
+      note.className = 'rr-note';
+      note.textContent = t('restingHeader', { names: rotation.benched.join(', ') });
+      container.appendChild(note);
+    }
+
+    const list = document.createElement('div');
+    list.className = 'round-section-list';
+    rotation.currentCourts.forEach((m, idx) => list.appendChild(renderRotationMatchEl(m, idx)));
+    container.appendChild(list);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'primary';
+    nextBtn.id = 'nextRoundBtn';
+    nextBtn.style.marginTop = '14px';
+    nextBtn.textContent = t('nextRoundBtn');
+    container.appendChild(nextBtn);
+
+    const statsTitle = document.createElement('div');
+    statsTitle.className = 'rr-standings-title';
+    statsTitle.textContent = t('gamesPlayedTitle');
+    container.appendChild(statsTitle);
+    const statsList = document.createElement('div');
+    statsList.className = 'check-list';
+    Object.keys(rotation.gamesPlayed)
+      .sort((a, b) => rotation.gamesPlayed[b] - rotation.gamesPlayed[a])
+      .forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'check-row';
+        row.innerHTML = `<label style="flex:1;">${name}</label><span class="score-tag">${t('gamesPlayedCount', { n: rotation.gamesPlayed[name] })}</span>`;
+        statsList.appendChild(row);
+      });
+    container.appendChild(statsList);
+
+    return container;
+  }
+
+  function renderBracket() {
+    bracketOut.innerHTML = '';
+    if (bracketMode === 'rr') {
+      bracketOut.appendChild(renderRoundRobin());
+    } else if (bracketMode === 'rotation') {
+      bracketOut.appendChild(renderRotation());
+    } else if (bracketMode === 'double') {
+      bracketOut.appendChild(renderDoubleElim());
+    } else {
+      bracketOut.appendChild(renderSingleElim());
+    }
+  }
+
+  makeBracketBtn.addEventListener('click', async () => {
+    if (bracketMode === 'rotation') {
+      if (activePlayers.length < teamSize * 2) {
+        await showAlert(t('rotationNotEnough'));
+        return;
+      }
+      initRotation(activePlayers);
+      generateRotationRound();
+      bracketCard.classList.remove('hidden');
+      bracketCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (!currentTeams.length) {
+      await showAlert(t('needMakeTeamsFirst'));
+      return;
+    }
+    const groupsInput = currentTeamGroups
+      ? currentTeamGroups.map(g => ({ label: g.label, entrants: g.teams.map(team => team.join('・')) }))
+      : [{ label: null, entrants: currentTeams.map(team => team.join('・')) }];
+    if (bracketMode === 'double' && groupsInput.some(g => g.entrants.length < 3)) {
+      await showAlert(t('doubleElimNeedMore'));
+      return;
+    }
+    if (bracketMode === 'single') initBracket(groupsInput);
+    else if (bracketMode === 'double') initDoubleElim(groupsInput);
+    else initRoundRobin(groupsInput);
+    renderBracket();
+    bracketCard.classList.remove('hidden');
+    bracketCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  bracketOut.addEventListener('click', async (e) => {
+    const nextRoundBtn = e.target.closest('#nextRoundBtn');
+    if (nextRoundBtn) {
+      generateRotationRound();
+      return;
+    }
+    const rotNameBtn = e.target.closest('.rot-name');
+    if (rotNameBtn) {
+      const teamName = rotNameBtn.textContent;
+      const ok = await showConfirm(t('winConfirm', { name: teamName }));
+      if (!ok) return;
+      rotationQuickWin(parseInt(rotNameBtn.dataset.idx, 10), parseInt(rotNameBtn.dataset.side, 10));
+      return;
+    }
+    const rotFinishBtn = e.target.closest('.rot-finish-btn');
+    if (rotFinishBtn) {
+      const idx = parseInt(rotFinishBtn.dataset.idx, 10);
+      const inputs = rotFinishBtn.parentElement.querySelectorAll('.score-input');
+      const scoreA = parseInt(inputs[0]?.value, 10);
+      const scoreB = parseInt(inputs[1]?.value, 10);
+      if (isNaN(scoreA) || isNaN(scoreB)) { await showAlert(t('bothScoresNeeded')); return; }
+      rotationFinish(idx, scoreA, scoreB);
+      return;
+    }
+    const rotEditBtn = e.target.closest('.rot-edit-btn');
+    if (rotEditBtn) {
+      rotationEdit(parseInt(rotEditBtn.dataset.idx, 10));
+      return;
+    }
+    const deNameBtn = e.target.closest('.de-name');
+    if (deNameBtn) {
+      const teamName = deNameBtn.textContent;
+      const ok = await showConfirm(t('winConfirm', { name: teamName }));
+      if (!ok) return;
+      const gi = parseInt(deNameBtn.dataset.gi, 10);
+      const part = deNameBtn.dataset.part;
+      const ri = deNameBtn.dataset.ri === '' ? null : parseInt(deNameBtn.dataset.ri, 10);
+      const mi = deNameBtn.dataset.mi === '' ? null : parseInt(deNameBtn.dataset.mi, 10);
+      const side = parseInt(deNameBtn.dataset.side, 10);
+      if (part === 'wb') deQuickWB(gi, ri, mi, side);
+      else if (part === 'lb') deQuickLB(gi, ri, mi, side);
+      else if (part === 'gf') deQuickGF(gi, side);
+      else if (part === 'gfreset') deQuickGFReset(gi, side);
+      return;
+    }
+    const deFinishBtn = e.target.closest('.de-finish-btn');
+    if (deFinishBtn) {
+      const gi = parseInt(deFinishBtn.dataset.gi, 10);
+      const part = deFinishBtn.dataset.part;
+      const ri = deFinishBtn.dataset.ri === '' ? null : parseInt(deFinishBtn.dataset.ri, 10);
+      const mi = deFinishBtn.dataset.mi === '' ? null : parseInt(deFinishBtn.dataset.mi, 10);
+      const inputs = deFinishBtn.parentElement.querySelectorAll('.score-input');
+      const scoreA = parseInt(inputs[0]?.value, 10);
+      const scoreB = parseInt(inputs[1]?.value, 10);
+      if (isNaN(scoreA) || isNaN(scoreB)) { await showAlert(t('bothScoresNeeded')); return; }
+      if (part === 'wb') await deFinishWB(gi, ri, mi, scoreA, scoreB);
+      else if (part === 'lb') await deFinishLB(gi, ri, mi, scoreA, scoreB);
+      else if (part === 'gf') await deFinishGF(gi, scoreA, scoreB);
+      else if (part === 'gfreset') await deFinishGFReset(gi, scoreA, scoreB);
+      return;
+    }
+    const deEditBtn = e.target.closest('.de-edit-btn');
+    if (deEditBtn) {
+      const gi = parseInt(deEditBtn.dataset.gi, 10);
+      const part = deEditBtn.dataset.part;
+      const ri = deEditBtn.dataset.ri === '' ? null : parseInt(deEditBtn.dataset.ri, 10);
+      const mi = deEditBtn.dataset.mi === '' ? null : parseInt(deEditBtn.dataset.mi, 10);
+      if (part === 'wb') await deEditWB(gi, ri, mi);
+      else if (part === 'lb') await deEditLB(gi, ri, mi);
+      else if (part === 'gf') await deEditGF(gi);
+      else if (part === 'gfreset') deEditGFReset(gi);
+      return;
+    }
+    const nameBtn = e.target.closest('.side-name.clickable');
+    if (nameBtn) {
+      const teamName = nameBtn.textContent;
+      const ok = await showConfirm(t('winConfirm', { name: teamName }));
+      if (!ok) return;
+      quickFinish(parseInt(nameBtn.dataset.gi, 10), parseInt(nameBtn.dataset.ri, 10), parseInt(nameBtn.dataset.mi, 10), parseInt(nameBtn.dataset.side, 10));
+      return;
+    }
+    const finishBtn = e.target.closest('.finish-btn');
+    if (finishBtn) {
+      const gi = parseInt(finishBtn.dataset.gi, 10);
+      const ri = parseInt(finishBtn.dataset.ri, 10);
+      const mi = parseInt(finishBtn.dataset.mi, 10);
+      const inputs = finishBtn.parentElement.querySelectorAll('.score-input');
+      const scoreA = parseInt(inputs[0]?.value, 10);
+      const scoreB = parseInt(inputs[1]?.value, 10);
+      if (isNaN(scoreA) || isNaN(scoreB)) { await showAlert(t('bothScoresNeeded')); return; }
+      finishMatch(gi, ri, mi, scoreA, scoreB);
+      return;
+    }
+    const editBtn = e.target.closest('.edit-btn');
+    if (editBtn) {
+      editMatch(parseInt(editBtn.dataset.gi, 10), parseInt(editBtn.dataset.ri, 10), parseInt(editBtn.dataset.mi, 10));
+      return;
+    }
+    const rrNameBtn = e.target.closest('.rr-name[data-idx]');
+    if (rrNameBtn) {
+      const teamName = rrNameBtn.textContent;
+      const ok = await showConfirm(t('winConfirm', { name: teamName }));
+      if (!ok) return;
+      rrQuickWin(parseInt(rrNameBtn.dataset.gi, 10), parseInt(rrNameBtn.dataset.idx, 10), parseInt(rrNameBtn.dataset.side, 10));
+      return;
+    }
+    const rrFinishBtn = e.target.closest('.rr-finish');
+    if (rrFinishBtn) {
+      const gi = parseInt(rrFinishBtn.dataset.gi, 10);
+      const idx = parseInt(rrFinishBtn.dataset.idx, 10);
+      const row = rrFinishBtn.closest('.rr-match');
+      const inputs = row.querySelectorAll('.score-input');
+      const scoreA = parseInt(inputs[0]?.value, 10);
+      const scoreB = parseInt(inputs[1]?.value, 10);
+      if (isNaN(scoreA) || isNaN(scoreB)) { await showAlert(t('bothScoresNeeded')); return; }
+      rrFinish(gi, idx, scoreA, scoreB);
+      return;
+    }
+    const rrEditBtn = e.target.closest('.rr-edit');
+    if (rrEditBtn) {
+      rrEdit(parseInt(rrEditBtn.dataset.gi, 10), parseInt(rrEditBtn.dataset.idx, 10));
+    }
+  });
+
+  // when a score field is focused, the mobile keyboard can cover the finish
+  // button below it — scroll the match card into view after the keyboard
+  // finishes animating in so the button stays reachable.
+  bracketOut.addEventListener('focusin', (e) => {
+    if (!e.target.classList.contains('score-input')) return;
+    const card = e.target.closest('.match') || e.target.closest('.rr-match');
+    if (!card) return;
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  });
+
+  shareBtn.addEventListener('click', async () => {
+    const target = document.getElementById('captureArea');
+    try {
+      const canvas = await html2canvas(target, { backgroundColor: '#0f172a', scale: 2 });
+      const link = document.createElement('a');
+      link.download = 'bracket.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      await showAlert(t('imageError'));
+      console.error(err);
+    }
+  });
+
+  // ---- past-results history: save a text summary of the current bracket
+  // so it can be reviewed again later, without needing to keep the app open ----
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem('tb_history') || '[]'); }
+    catch (e) { return []; }
+  }
+  function saveHistoryList(list) { localStorage.setItem('tb_history', JSON.stringify(list)); }
+
+  function matchLine(m) {
+    const a = m.slots[0] === null ? t('tbd') : (m.slots[0] === 'BYE' ? t('byeParen') : m.slots[0]);
+    const b = m.slots[1] === null ? t('tbd') : (m.slots[1] === 'BYE' ? t('byeParen') : m.slots[1]);
+    if (m.slots[0] === null && m.slots[1] === null) return null;
+    return `  ${a} ${t('vs')} ${b}${m.done ? t('winLabel', { name: m.winner }) : ''}`;
+  }
+
+  function buildResultSummary() {
+    const dateStr = new Date().toLocaleString(currentLang === 'en' ? 'en-US' : 'ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const lines = [];
+    let title = null;
+    if (bracketMode === 'single' && bracketState) {
+      title = t('singleTitle');
+      bracketState.groups.forEach(group => {
+        if (group.label) lines.push(`[${translateGroupLabel(group.label)}]`);
+        group.rounds.forEach((round, ri) => {
+          lines.push(ri === group.rounds.length - 1 ? t('finalRound') : t('roundN', { n: ri + 1 }));
+          round.forEach(m => { const l = matchLine(m); if (l) lines.push(l); });
+        });
+      });
+    } else if (bracketMode === 'double' && deState) {
+      title = t('doubleTitle');
+      deState.groups.forEach(group => {
+        if (group.label) lines.push(`[${translateGroupLabel(group.label)}]`);
+        lines.push(t('wbLine'));
+        group.wb.forEach(round => round.forEach(m => { const l = matchLine(m); if (l) lines.push(l); }));
+        if (group.lb.length) {
+          lines.push(t('lbLine'));
+          group.lb.forEach(round => round.forEach(m => { const l = matchLine(m); if (l) lines.push(l); }));
+        }
+        const gfLine = matchLine(group.gf);
+        if (gfLine) lines.push(`${t('gfLine')}${gfLine}`);
+        if (group.gfReset) { const rl = matchLine(group.gfReset); if (rl) lines.push(`${t('resetLine')}${rl}`); }
+        if (group.champion) lines.push(t('championText', { name: group.champion }));
+      });
+    } else if (bracketMode === 'rr' && rrState) {
+      title = t('leagueTitle');
+      rrState.groups.forEach((group, gi) => {
+        if (group.label) lines.push(`[${translateGroupLabel(group.label)}]`);
+        computeStandings(gi).forEach((s, i) => {
+          lines.push(t('rankLine', { rank: i + 1, name: s.name, win: s.win, draw: s.draw, loss: s.loss, points: s.points }));
+        });
+      });
+    }
+    if (!title) return null;
+    return { title, dateStr, lines };
+  }
+
+  document.getElementById('saveResultBtn').addEventListener('click', async () => {
+    const summary = buildResultSummary();
+    if (!summary) { await showAlert(t('historyNothingToSave')); return; }
+    const history = loadHistory();
+    history.unshift({ id: Date.now(), title: summary.title, date: summary.dateStr, lines: summary.lines });
+    if (history.length > 20) history.length = 20;
+    saveHistoryList(history);
+    renderHistory();
+    await showAlert(t('historySaved'));
+  });
+
+  function renderHistory() {
+    const historyList = document.getElementById('historyList');
+    const history = loadHistory();
+    historyList.innerHTML = '';
+    if (!history.length) {
+      historyList.innerHTML = `<div class="history-empty">${t('historyEmpty')}</div>`;
+      return;
+    }
+    history.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = `
+        <div class="history-info">
+          <div class="history-title">${item.title}</div>
+          <div class="history-date">${item.date}</div>
+        </div>
+        <button class="history-view-btn" data-id="${item.id}">${t('historyView')}</button>
+        <button class="history-delete-btn" data-id="${item.id}">✕</button>`;
+      historyList.appendChild(row);
+    });
+  }
+
+  document.getElementById('historyList').addEventListener('click', async (e) => {
+    const viewBtn = e.target.closest('.history-view-btn');
+    if (viewBtn) {
+      const id = parseInt(viewBtn.dataset.id, 10);
+      const item = loadHistory().find(h => h.id === id);
+      if (!item) return;
+      await showAlert(`${item.title} (${item.date})\n\n${item.lines.join('\n')}`);
+      return;
+    }
+    const delBtn = e.target.closest('.history-delete-btn');
+    if (delBtn) {
+      const id = parseInt(delBtn.dataset.id, 10);
+      const ok = await showConfirm(t('historyDeleteConfirm'));
+      if (!ok) return;
+      saveHistoryList(loadHistory().filter(h => h.id !== id));
+      renderHistory();
+    }
+  });
+
+  renderHistory();
+  applyLanguage(currentLang);
+})();
+</script>
+</body>
+</html>
