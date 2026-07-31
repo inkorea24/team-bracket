@@ -223,6 +223,26 @@
     border: 1px solid var(--border); background: #1e293b; color: var(--text); border-radius: 999px;
     padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
   }
+  .premium-btn {
+    border: 1px solid #b45309; background: #78350f; color: #fde68a; border-radius: 999px;
+    padding: 6px 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .premium-btn.is-premium { background: #166534; border-color: #16a34a; color: #bbf7d0; }
+
+  .premium-perks { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .premium-perks li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; }
+  .premium-perks li .check { color: #34d399; flex-shrink: 0; }
+  .premium-status-line { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .premium-price { font-size: 22px; font-weight: 800; text-align: center; margin: 6px 0 16px; }
+  .premium-buy-btn {
+    width: 100%; border: none; background: #f59e0b; color: #1e1300; border-radius: 12px;
+    padding: 13px 0; font-size: 15px; font-weight: 800; cursor: pointer;
+  }
+  .locked-badge {
+    position: absolute; top: 3px; left: 3px; font-size: 9px; background: rgba(0,0,0,0.4);
+    border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .slot-btn.locked { opacity: 0.55; }
 
   .manual-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150;
@@ -250,6 +270,7 @@
       <button data-lang="ko" class="active">한국어</button>
       <button data-lang="en">English</button>
     </div>
+    <button class="premium-btn" id="premiumBtn">⭐</button>
     <button class="manual-btn" id="manualBtn" data-i18n="manualBtn">📖 사용설명서</button>
   </div>
   <h1 data-i18n="appTitle">🎲 팀나누기 &amp; 대진표</h1>
@@ -395,6 +416,25 @@
   </div>
 </div>
 
+<div class="manual-overlay hidden" id="premiumOverlay">
+  <div class="manual-box" style="width:min(360px,100%);">
+    <div class="manual-header">
+      <h2 data-i18n="premiumTitle">⭐ 프리미엄</h2>
+      <button id="premiumCloseBtn" class="manual-close-btn">✕</button>
+    </div>
+    <div class="manual-body">
+      <div class="premium-status-line" id="premiumStatusLine"></div>
+      <ul class="premium-perks">
+        <li><span class="check">✔</span><span data-i18n="perkSlots">저장 슬롯 9개 (무료는 3개)</span></li>
+        <li><span class="check">✔</span><span data-i18n="perkHistory">지난 대진표 기록 20개 저장 (무료는 3개)</span></li>
+        <li><span class="check">✔</span><span data-i18n="perkWatermark">공유 이미지에 워터마크 없음</span></li>
+      </ul>
+      <div class="premium-price">990원</div>
+      <button class="premium-buy-btn" id="premiumBuyBtn" data-i18n="premiumBuyBtn">프리미엄 구매하기</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   // Service Worker: only works when hosted over http(s), safely skipped on file://
@@ -479,6 +519,16 @@
       manualTitle: '📖 사용설명서',
       singleTitle: '싱글 엘리미네이션', doubleTitle: '더블 엘리미네이션',
       gfLine: '그랜드파이널:', resetLine: '리셋경기:', winLabel: ' → 승: {name}', wbLine: '- 승자조 -', lbLine: '- 패자조 -',
+      premiumTitle: '⭐ 프리미엄', perkSlots: '저장 슬롯 9개 (무료는 3개)', perkHistory: '지난 대진표 기록 20개 저장 (무료는 3개)',
+      perkWatermark: '공유 이미지에 워터마크 없음', premiumBuyBtn: '프리미엄 구매하기',
+      premiumBadgeOn: '⭐ 프리미엄', premiumBadgeTrial: '⭐ 체험 {n}/3', premiumBadgeOff: '⭐ 무료',
+      premiumStatusOn: '프리미엄 이용 중이에요. 감사합니다!', premiumStatusTrial: '지금은 무료 체험 중이에요 (대진표 만들기 {n}/3). 체험이 끝나면 아래 혜택이 잠겨요.',
+      premiumStatusOff: '무료 버전이에요. 구매하면 아래 혜택이 계속 열려있어요.',
+      premiumOnlyStore: '이 기능은 앱(Play 스토어에서 설치한 버전)에서만 결제할 수 있어요.',
+      premiumPurchaseDone: '구매 완료! 프리미엄이 활성화됐어요.', premiumPurchaseFail: '구매를 완료하지 못했어요. 다시 시도해주세요.',
+      slotLockedMsg: '이 슬롯은 프리미엄 전용이에요. 구매하면 9개까지 다 쓸 수 있어요.',
+      historyLimitMsg: '무료 버전은 최근 3개까지만 저장돼요. 더 저장하려면 프리미엄이 필요해요.',
+      watermarkText: '팀나누기 & 대진표',
     },
     en: {
       manualBtn: '📖 User Guide', appTitle: '🎲 Team Split &amp; Bracket',
@@ -549,6 +599,16 @@
       manualTitle: '📖 User Guide',
       singleTitle: 'Single Elimination', doubleTitle: 'Double Elimination',
       gfLine: 'Grand Final:', resetLine: 'Reset match:', winLabel: ' → won: {name}', wbLine: '- Winners Bracket -', lbLine: '- Losers Bracket -',
+      premiumTitle: '⭐ Premium', perkSlots: '9 save slots (free: 3)', perkHistory: '20 saved past results (free: 3)',
+      perkWatermark: 'No watermark on shared images', premiumBuyBtn: 'Buy Premium',
+      premiumBadgeOn: '⭐ Premium', premiumBadgeTrial: '⭐ Trial {n}/3', premiumBadgeOff: '⭐ Free',
+      premiumStatusOn: "You're on Premium. Thank you!", premiumStatusTrial: "You're on a free trial right now (Make Bracket {n}/3). These perks lock once the trial ends.",
+      premiumStatusOff: "You're on the free version. Buy Premium to keep these perks unlocked for good.",
+      premiumOnlyStore: 'This can only be purchased in the app (the version installed from the Play Store).',
+      premiumPurchaseDone: 'Purchase complete! Premium is now active.', premiumPurchaseFail: "Couldn't complete the purchase. Please try again.",
+      slotLockedMsg: 'This slot is Premium-only. Buy Premium to use all 9 slots.',
+      historyLimitMsg: 'The free version only keeps the latest 3. Premium is needed to save more.',
+      watermarkText: 'Team Split & Bracket',
     }
   };
 
@@ -631,6 +691,7 @@
     const bracketCardEl = document.getElementById('bracketCard');
     if (bracketCardEl && !bracketCardEl.classList.contains('hidden') && typeof renderBracket === 'function') renderBracket();
     if (!manualOverlay.classList.contains('hidden') && manualOverlay.classList.contains('show') && typeof renderManual === 'function') renderManual();
+    if (typeof updatePremiumUI === 'function') updatePremiumUI();
   }
 
   langSeg.addEventListener('click', (e) => {
@@ -669,6 +730,13 @@
         <li><b>Casual Rotation:</b> no rankings. Set how many courts run at once; each new round re-pairs players, preferring people who haven't been teammates/opponents yet while keeping skill balanced. If there aren't enough courts for everyone, the least-played people get priority to play.</li>
         <li>Save the current image with the share button, or save a text summary to Past Results to look back at later (single/double elimination and league only).</li>
       </ul>
+      <h3>⭐ Premium</h3>
+      <ul>
+        <li>The first 3 times you tap "Make Bracket," Premium perks are unlocked for free as a trial. After that, buy Premium (990 KRW, one-time) to keep them.</li>
+        <li>Premium: 9 save slots (free: 3), 20 saved past results (free: 3), and no watermark on shared images.</li>
+        <li>All sports, team-formation modes, and bracket formats stay free either way — Premium only affects capacity and the watermark.</li>
+        <li>Tap the ⭐ badge at the top anytime to check your status or buy Premium.</li>
+      </ul>
       <h3>📖 Notes</h3>
       <ul>
         <li>Everything is stored on this device only (no account, no server) — clearing browser data will erase saved slots and history.</li>
@@ -702,6 +770,13 @@
         <li><b>친목 로테이션:</b> 등수 없음. 코트 수를 정하면 매 라운드마다 아직 같은 편/상대가 안 되어본 사람 위주로, 실력도 balance 맞춰 다시 짝지어줘요. 코트가 부족하면 덜 뛴 사람이 먼저 뛰어요.</li>
         <li>공유 버튼으로 이미지 저장, 또는 "지난 대진표 기록"에 텍스트로 저장해서 나중에 다시 볼 수 있어요 (싱글/더블 엘리미네이션, 리그전만 지원).</li>
       </ul>
+      <h3>⭐ 프리미엄</h3>
+      <ul>
+        <li>"대진표 만들기"를 처음 3번 누르는 동안은 프리미엄 혜택이 무료 체험으로 열려요. 그 이후엔 프리미엄(990원, 1회 결제)을 구매해야 계속 쓸 수 있어요.</li>
+        <li>프리미엄 혜택: 저장 슬롯 9개(무료 3개), 지난 대진표 기록 20개 저장(무료 3개), 공유 이미지 워터마크 없음.</li>
+        <li>운동 종류·팀 편성 방식·대진표 방식(싱글/더블엘림/리그전/로테이션)은 무료든 프리미엄이든 다 그대로 써요 — 프리미엄은 저장 용량과 워터마크에만 영향을 줘요.</li>
+        <li>상단 ⭐ 배지를 언제든 눌러서 현재 상태 확인하거나 구매할 수 있어요.</li>
+      </ul>
       <h3>📖 참고</h3>
       <ul>
         <li>모든 데이터는 이 기기에만 저장돼요 (계정·서버 없음) — 브라우저 데이터를 지우면 저장 슬롯과 기록도 함께 사라져요.</li>
@@ -722,6 +797,110 @@
   manualOverlay.addEventListener('click', (e) => {
     if (e.target === manualOverlay) { manualOverlay.classList.remove('show'); manualOverlay.classList.add('hidden'); }
   });
+
+  // ---- premium: free + trial + Play Billing unlock (Digital Goods API) ----
+  const PREMIUM_SKU = 'premium_unlock';
+  const TRIAL_LIMIT = 3;
+  let premiumPurchased = localStorage.getItem('tb_premium_purchased') === 'true';
+  let trialUses = parseInt(localStorage.getItem('tb_trial_uses') || '0', 10);
+
+  function isPremiumActive() { return premiumPurchased || trialUses < TRIAL_LIMIT; }
+  function maxSlots() { return isPremiumActive() ? 9 : 3; }
+  function maxHistory() { return isPremiumActive() ? 20 : 3; }
+
+  function bumpTrialUse() {
+    if (premiumPurchased) return;
+    if (trialUses < TRIAL_LIMIT) {
+      trialUses++;
+      localStorage.setItem('tb_trial_uses', String(trialUses));
+    }
+    updatePremiumUI();
+  }
+
+  const premiumBtn = document.getElementById('premiumBtn');
+  const premiumOverlay = document.getElementById('premiumOverlay');
+  const premiumCloseBtn = document.getElementById('premiumCloseBtn');
+  const premiumStatusLine = document.getElementById('premiumStatusLine');
+  const premiumBuyBtn = document.getElementById('premiumBuyBtn');
+
+  function updatePremiumUI() {
+    if (premiumPurchased) {
+      premiumBtn.textContent = t('premiumBadgeOn');
+      premiumBtn.classList.add('is-premium');
+      premiumStatusLine.textContent = t('premiumStatusOn');
+      premiumBuyBtn.classList.add('hidden');
+    } else if (trialUses < TRIAL_LIMIT) {
+      premiumBtn.textContent = t('premiumBadgeTrial', { n: trialUses });
+      premiumBtn.classList.remove('is-premium');
+      premiumStatusLine.textContent = t('premiumStatusTrial', { n: trialUses });
+      premiumBuyBtn.classList.remove('hidden');
+    } else {
+      premiumBtn.textContent = t('premiumBadgeOff');
+      premiumBtn.classList.remove('is-premium');
+      premiumStatusLine.textContent = t('premiumStatusOff');
+      premiumBuyBtn.classList.remove('hidden');
+    }
+    if (typeof renderSlots === 'function') renderSlots();
+  }
+
+  async function getDigitalGoodsService() {
+    if (!('getDigitalGoodsService' in window)) return null;
+    try { return await window.getDigitalGoodsService('https://play.google.com/billing'); }
+    catch (e) { return null; }
+  }
+
+  async function checkExistingPurchase() {
+    const service = await getDigitalGoodsService();
+    if (!service) return;
+    try {
+      const purchases = await service.listPurchases();
+      if (purchases && purchases.some(p => p.itemId === PREMIUM_SKU)) {
+        premiumPurchased = true;
+        localStorage.setItem('tb_premium_purchased', 'true');
+        updatePremiumUI();
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  async function purchasePremium() {
+    const service = await getDigitalGoodsService();
+    if (!service || typeof PaymentRequest === 'undefined') {
+      await showAlert(t('premiumOnlyStore'));
+      return;
+    }
+    try {
+      const request = new PaymentRequest(
+        [{ supportedMethods: 'https://play.google.com/billing', data: { sku: PREMIUM_SKU } }],
+        { total: { label: 'Total', amount: { currency: 'KRW', value: '990' } } }
+      );
+      const response = await request.show();
+      await response.complete('success');
+      premiumPurchased = true;
+      localStorage.setItem('tb_premium_purchased', 'true');
+      updatePremiumUI();
+      await showAlert(t('premiumPurchaseDone'));
+      premiumOverlay.classList.remove('show');
+      premiumOverlay.classList.add('hidden');
+    } catch (err) {
+      console.error(err);
+      await showAlert(t('premiumPurchaseFail'));
+    }
+  }
+
+  premiumBtn.addEventListener('click', () => {
+    premiumStatusLine.textContent = premiumPurchased ? t('premiumStatusOn') : (trialUses < TRIAL_LIMIT ? t('premiumStatusTrial', { n: trialUses }) : t('premiumStatusOff'));
+    premiumOverlay.classList.remove('hidden');
+    premiumOverlay.classList.add('show');
+  });
+  premiumCloseBtn.addEventListener('click', () => {
+    premiumOverlay.classList.remove('show');
+    premiumOverlay.classList.add('hidden');
+  });
+  premiumOverlay.addEventListener('click', (e) => {
+    if (e.target === premiumOverlay) { premiumOverlay.classList.remove('show'); premiumOverlay.classList.add('hidden'); }
+  });
+  premiumBuyBtn.addEventListener('click', purchasePremium);
+  checkExistingPurchase();
 
   // ---- STEP 1: sport / team size ----
   const sportGrid = document.getElementById('sportGrid');
@@ -984,16 +1163,19 @@
 
   function renderSlots() {
     slotGrid.innerHTML = '';
+    const limit = maxSlots();
     for (let n = 1; n <= 9; n++) {
       const data = getSlot(n);
+      const locked = n > limit;
       const btn = document.createElement('div');
-      btn.className = 'slot-btn' + (data ? ' filled' : '') + (n === activeSlot ? ' active-slot' : '');
+      btn.className = 'slot-btn' + (data ? ' filled' : '') + (n === activeSlot ? ' active-slot' : '') + (locked ? ' locked' : '');
       btn.dataset.n = n;
       const label = data ? (data.name ? data.name : t('slotPeople', { n: data.players.length })) : t('slotEmpty');
       const subLabel = data && data.name ? `<span class="slot-sub">${t('slotPeople', { n: data.players.length })}</span>` : '';
-      const renameBtn = data ? `<button class="slot-rename-btn" data-n="${n}">✎</button>` : '';
-      const deleteBtn = data ? `<button class="slot-delete-btn" data-n="${n}">✕</button>` : '';
-      btn.innerHTML = `<span class="slot-num">${n}</span><span class="slot-info">${label}</span>${subLabel}${renameBtn}${deleteBtn}`;
+      const renameBtn = data && !locked ? `<button class="slot-rename-btn" data-n="${n}">✎</button>` : '';
+      const deleteBtn = data && !locked ? `<button class="slot-delete-btn" data-n="${n}">✕</button>` : '';
+      const lockBadge = locked ? `<span class="locked-badge">🔒</span>` : '';
+      btn.innerHTML = `${lockBadge}<span class="slot-num">${n}</span><span class="slot-info">${label}</span>${subLabel}${renameBtn}${deleteBtn}`;
       slotGrid.appendChild(btn);
     }
   }
@@ -1032,6 +1214,12 @@
     const btn = e.target.closest('.slot-btn');
     if (!btn) return;
     const n = parseInt(btn.dataset.n, 10);
+    if (n > maxSlots()) {
+      await showAlert(t('slotLockedMsg'));
+      premiumOverlay.classList.remove('hidden');
+      premiumOverlay.classList.add('show');
+      return;
+    }
     if (slotMode === 'save') {
       const players = getPlayers();
       if (!players.length) { await showAlert(t('slotSaveConfirm')); return; }
@@ -2143,6 +2331,7 @@
       }
       initRotation(activePlayers);
       generateRotationRound();
+      bumpTrialUse();
       bracketCard.classList.remove('hidden');
       bracketCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
@@ -2161,6 +2350,7 @@
     if (bracketMode === 'single') initBracket(groupsInput);
     else if (bracketMode === 'double') initDoubleElim(groupsInput);
     else initRoundRobin(groupsInput);
+    bumpTrialUse();
     renderBracket();
     bracketCard.classList.remove('hidden');
     bracketCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2304,6 +2494,19 @@
     const target = document.getElementById('captureArea');
     try {
       const canvas = await html2canvas(target, { backgroundColor: '#0f172a', scale: 2 });
+      if (!isPremiumActive()) {
+        const ctx = canvas.getContext('2d');
+        const text = t('watermarkText');
+        const fontSize = Math.max(14, Math.round(canvas.width * 0.018));
+        ctx.font = `${fontSize}px -apple-system, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        const pad = fontSize * 0.8;
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillText(text, canvas.width - pad + 1, canvas.height - pad + 1);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fillText(text, canvas.width - pad, canvas.height - pad);
+      }
       const link = document.createElement('a');
       link.download = 'bracket.png';
       link.href = canvas.toDataURL('image/png');
@@ -2374,6 +2577,13 @@
     const summary = buildResultSummary();
     if (!summary) { await showAlert(t('historyNothingToSave')); return; }
     const history = loadHistory();
+    const limit = maxHistory();
+    if (history.length >= limit) {
+      await showAlert(t('historyLimitMsg'));
+      premiumOverlay.classList.remove('hidden');
+      premiumOverlay.classList.add('show');
+      return;
+    }
     history.unshift({ id: Date.now(), title: summary.title, date: summary.dateStr, lines: summary.lines });
     if (history.length > 20) history.length = 20;
     saveHistoryList(history);
