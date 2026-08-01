@@ -688,6 +688,7 @@
     if (typeof renderSlots === 'function') renderSlots();
     if (typeof renderHistory === 'function') renderHistory();
     if (typeof currentTeams !== 'undefined' && currentTeams.length && typeof renderTeams === 'function') renderTeams(currentTeams);
+    if (typeof lastTeamsInfoCtx !== 'undefined' && lastTeamsInfoCtx && typeof renderTeamsInfo === 'function') teamSizeInfo.textContent = renderTeamsInfo(lastTeamsInfoCtx);
     const bracketCardEl = document.getElementById('bracketCard');
     if (bracketCardEl && !bracketCardEl.classList.contains('hidden') && typeof renderBracket === 'function') renderBracket();
     if (!manualOverlay.classList.contains('hidden') && manualOverlay.classList.contains('show') && typeof renderManual === 'function') renderManual();
@@ -713,21 +714,21 @@
         <li>Type one name per line, or paste "Name,Gender,Grade" (tab or comma separated — Excel columns paste in directly) to fill in gender/grade at the same time.</li>
         <li>Edits in the textarea and edits in the roster list below sync to each other automatically.</li>
         <li>Save/Load up to 9 named slots — includes names, gender, and grade. Rename (✎) or delete (✕) any saved slot. Saving/loading never asks for confirmation, so it's instant.</li>
-        <li>Uncheck anyone absent today — only checked names go into teams.</li>
-        <li>Grade is A (highest) to E (lowest). A woman's grade counts as one tier below the same letter for a man when balancing (e.g. a woman graded A ≈ a man graded B).</li>
+        <li>Uncheck anyone absent today — only checked names go into teams. Use "Check All" / "Uncheck All" for the whole list at once, or the search box to find one name quickly in a long roster.</li>
+        <li>Grade is A (highest) to E (lowest). Use the "All A" / "All B" ... quick buttons to set everyone's grade at once, then adjust individual people afterward. A woman's grade counts as one tier below the same letter for a man when balancing (e.g. a woman graded A ≈ a man graded B).</li>
       </ul>
       <h3>3) Team Formation</h3>
       <ul>
-        <li><b>Match type:</b> Men's/Women's only, Mixed (pairs top man with top woman, 2nd with 2nd, etc.), or Split by Gender (forms separate men's and women's teams in the same run, so nobody is excluded).</li>
+        <li><b>Match type:</b> Men's/Women's only, Mixed (pairs top man with top woman, 2nd with 2nd, etc.), Split by Gender (forms separate men's and women's teams in the same run, so nobody is excluded), or No Split (ignore gender entirely and mix everyone together).</li>
         <li><b>Formation mode:</b> Balanced (pairs strong with weak so every team is similar overall strength), Same-Tier (groups similar grades together so top players face top players), or Pure Random.</li>
         <li>Leftover players who don't divide evenly form their own smaller team instead of being folded into a full one.</li>
       </ul>
       <h3>4) Bracket Format</h3>
       <ul>
         <li><b>Single Elimination:</b> lose once, you're out. Byes auto-advance in round 1 only. Enter both scores and tap Finish, or just tap a team's name (with a confirmation) to set the winner without scores. Undo a finished match with Edit — this also resets anything already decided using that result.</li>
-        <li><b>Double Elimination:</b> a Winners Bracket and Losers Bracket — losing once drops you to the losers bracket for a second chance. The winners-bracket champion meets the losers-bracket champion in the Grand Final; if the losers-bracket side wins that, a Reset match decides the real champion.</li>
-        <li><b>Round Robin (League):</b> everyone plays everyone once. A win/draw/loss/points standings table sorts automatically as results come in.</li>
-        <li><b>Casual Rotation:</b> no rankings. Set how many courts run at once; each new round re-pairs players, preferring people who haven't been teammates/opponents yet while keeping skill balanced. If there aren't enough courts for everyone, the least-played people get priority to play.</li>
+        <li><b>Double Elimination:</b> needs at least 3 teams/groups. A Winners Bracket and Losers Bracket — losing once drops you to the losers bracket for a second chance. The winners-bracket champion meets the losers-bracket champion in the Grand Final; if the losers-bracket side wins that, a Reset match decides the real champion.</li>
+        <li><b>Round Robin (League):</b> everyone plays everyone once. A win/draw/loss/points standings table sorts automatically as results come in. With more than 6 entrants you'll get a heads-up, since the match count grows quickly.</li>
+        <li><b>Casual Rotation:</b> no rankings. Set how many courts run at once; each new round re-pairs players, preferring people who haven't been teammates/opponents yet while keeping skill balanced. If there aren't enough courts for everyone, players sit out in turn and the least-played people get priority to play next.</li>
         <li>Save the current image with the share button, or save a text summary to Past Results to look back at later (single/double elimination and league only).</li>
       </ul>
       <h3>⭐ Premium</h3>
@@ -739,6 +740,7 @@
       </ul>
       <h3>📖 Notes</h3>
       <ul>
+        <li>This app works offline once you've opened it before — you can install it to your home screen and it needs no internet connection to run.</li>
         <li>Everything is stored on this device only (no account, no server) — clearing browser data will erase saved slots and history.</li>
         <li>Switch languages anytime with the toggle at the top; your data stays exactly the same.</li>
       </ul>
@@ -753,21 +755,21 @@
         <li>한 줄에 이름만 입력해도 되고, "이름,성별,등급"(쉼표/탭 구분, 엑셀 열 붙여넣기 가능)으로 붙여넣으면 성별·등급까지 한번에 채워져요.</li>
         <li>입력란(텍스트)과 아래 참가자 목록은 서로 자동으로 동기화돼요.</li>
         <li>1~9번 슬롯에 이름+성별+등급까지 저장/불러오기 가능. 이름 바꾸기(✎)·삭제(✕) 가능. 저장/불러오기는 확인창 없이 바로 처리돼요.</li>
-        <li>오늘 불참한 사람은 체크 해제하면 팀 편성에서 제외돼요.</li>
-        <li>등급은 A(최상)~E(최하). 밸런스 계산 시 여자 등급은 남자보다 한 단계 낮게 취급돼요 (여자 A ≈ 남자 B).</li>
+        <li>오늘 불참한 사람은 체크 해제하면 팀 편성에서 제외돼요. "전체 참가"/"전체 불참" 버튼으로 한번에 처리하거나, 검색창으로 명단이 길 때 이름 하나만 빠르게 찾을 수 있어요.</li>
+        <li>등급은 A(최상)~E(최하). "전체 A"/"전체 B" 같은 일괄 버튼으로 다 같은 등급으로 맞춘 다음 개별로 조정해도 편해요. 밸런스 계산 시 여자 등급은 남자보다 한 단계 낮게 취급돼요 (여자 A ≈ 남자 B).</li>
       </ul>
       <h3>3) 팀 편성</h3>
       <ul>
-        <li><b>매치 구분:</b> 남자/여자만, 혼합(남녀 순위대로 짝지음), 성별 구분(남녀 각각 팀을 동시에 만들어서 아무도 빠지지 않음) 중 선택.</li>
+        <li><b>매치 구분:</b> 남자/여자만, 혼합(남녀 순위대로 짝지음), 성별 구분(남녀 각각 팀을 동시에 만들어서 아무도 빠지지 않음), 구분없음(성별 상관없이 전체를 섞음) 중 선택.</li>
         <li><b>편성 방식:</b> 밸런스(강+약을 묶어 팀 실력을 고르게), 동급(비슷한 등급끼리 묶어서 고레벨은 고레벨끼리), 순수 랜덤 중 선택.</li>
         <li>인원이 딱 안 나눠지면 남는 사람은 기존 팀에 합쳐지지 않고 별도의 소수 팀으로 편성돼요.</li>
       </ul>
       <h3>4) 대진표 방식</h3>
       <ul>
         <li><b>싱글 엘리미네이션:</b> 한 번 지면 탈락. 부전승은 1라운드에서만 자동 진출. 점수 입력 후 종료, 또는 팀 이름 탭(확인창)만으로도 승자 지정 가능. "수정"으로 되돌리면 그 결과를 사용한 다음 라운드도 같이 초기화돼요.</li>
-        <li><b>더블 엘리미네이션:</b> 승자조·패자조로 나뉘어, 한 번 져도 패자조에서 기회가 한 번 더 있어요. 승자조 우승팀과 패자조 우승팀이 그랜드 파이널에서 만나고, 패자조 팀이 이기면 리셋 경기로 최종 우승팀이 정해져요.</li>
-        <li><b>리그전:</b> 모두가 한 번씩 대결. 승/무/패/승점 순위표가 결과 입력에 따라 자동 정렬돼요.</li>
-        <li><b>친목 로테이션:</b> 등수 없음. 코트 수를 정하면 매 라운드마다 아직 같은 편/상대가 안 되어본 사람 위주로, 실력도 balance 맞춰 다시 짝지어줘요. 코트가 부족하면 덜 뛴 사람이 먼저 뛰어요.</li>
+        <li><b>더블 엘리미네이션:</b> 팀(또는 조)이 3개 이상 있어야 사용 가능. 승자조·패자조로 나뉘어, 한 번 져도 패자조에서 기회가 한 번 더 있어요. 승자조 우승팀과 패자조 우승팀이 그랜드 파이널에서 만나고, 패자조 팀이 이기면 리셋 경기로 최종 우승팀이 정해져요.</li>
+        <li><b>리그전:</b> 모두가 한 번씩 대결. 승/무/패/승점 순위표가 결과 입력에 따라 자동 정렬돼요. 참가자가 6명이 넘으면 경기 수가 많이 생긴다는 안내가 함께 나와요.</li>
+        <li><b>친목 로테이션:</b> 등수 없음. 코트 수를 정하면 매 라운드마다 아직 같은 편/상대가 안 되어본 사람 위주로, 실력도 밸런스 맞춰 다시 짝지어줘요. 코트가 부족하면 그 라운드에 못 뛰는 사람이 생기고, 덜 뛴 사람이 다음 라운드에 우선적으로 배정돼요.</li>
         <li>공유 버튼으로 이미지 저장, 또는 "지난 대진표 기록"에 텍스트로 저장해서 나중에 다시 볼 수 있어요 (싱글/더블 엘리미네이션, 리그전만 지원).</li>
       </ul>
       <h3>⭐ 프리미엄</h3>
@@ -779,6 +781,7 @@
       </ul>
       <h3>📖 참고</h3>
       <ul>
+        <li>한 번 열어본 뒤로는 인터넷 없이도 작동해요 — 홈 화면에 설치해두면 인터넷 연결 없이도 바로 실행할 수 있어요.</li>
         <li>모든 데이터는 이 기기에만 저장돼요 (계정·서버 없음) — 브라우저 데이터를 지우면 저장 슬롯과 기록도 함께 사라져요.</li>
         <li>상단 토글로 언제든 언어를 바꿀 수 있고, 데이터는 그대로 유지돼요.</li>
       </ul>
@@ -1340,7 +1343,7 @@
       const males = players.filter(p => playerGenders[p] === 'M');
       const females = players.filter(p => playerGenders[p] === 'F');
       const pairCount = Math.min(males.length, females.length);
-      if (pairCount < 1) return { teams: [], info: t('mixNeedBoth') };
+      if (pairCount < 1) return { teams: [], infoCtx: { type: 'error', key: 'mixNeedBoth' } };
       const rank = (list) => teamMode === 'random'
         ? shuffle(list)
         : list.slice().sort((a, b) => effectiveSkill(b) - effectiveSkill(a));
@@ -1349,8 +1352,7 @@
       const teams = [];
       for (let i = 0; i < pairCount; i++) teams.push([orderedM[i], orderedF[i]]);
       const leftover = males.length + females.length - pairCount * 2;
-      const info = `${t('genderModeMix')} ${pairCount}` + (leftover > 0 ? t('splitLeftover', { n: leftover }) : '.');
-      return { teams, info };
+      return { teams, infoCtx: { type: 'mix', pairCount, leftover } };
     }
 
     if (genderMode === 'split') {
@@ -1359,30 +1361,61 @@
       const mRes = buildTeamsFromPool(males);
       const fRes = buildTeamsFromPool(females);
       const teams = [...mRes.teams, ...fRes.teams];
-      if (!teams.length) return { teams: [], info: t('splitNotEnough') };
-      const parts = [];
-      if (mRes.count > 0) parts.push(t('splitMaleTeams', { n: mRes.count }) + (mRes.leftover > 0 ? t('splitLeftover', { n: mRes.leftover }) : ''));
-      else if (males.length > 0) parts.push(t('splitMaleShort', { n: males.length }));
-      if (fRes.count > 0) parts.push(t('splitFemaleTeams', { n: fRes.count }) + (fRes.leftover > 0 ? t('splitLeftover', { n: fRes.leftover }) : ''));
-      else if (females.length > 0) parts.push(t('splitFemaleShort', { n: females.length }));
+      if (!teams.length) return { teams: [], infoCtx: { type: 'error', key: 'splitNotEnough' } };
       const groups = [{ label: 'M', teams: mRes.teams }, { label: 'F', teams: fRes.teams }].filter(g => g.teams.length > 0);
-      return { teams, groups, info: parts.join(', ') + '.' };
+      return {
+        teams, groups,
+        infoCtx: {
+          type: 'split',
+          mCount: mRes.count, mLeftover: mRes.leftover, maleTotal: males.length,
+          fCount: fRes.count, fLeftover: fRes.leftover, femaleTotal: females.length
+        }
+      };
     }
 
     let pool = players;
     let genderLabelKey = '';
     if (genderMode === 'mm' || genderMode === 'm') { pool = players.filter(p => playerGenders[p] === 'M'); genderLabelKey = 'M'; }
     else if (genderMode === 'ff' || genderMode === 'f') { pool = players.filter(p => playerGenders[p] === 'F'); genderLabelKey = 'F'; }
-    const genderLabel = genderLabelKey ? `${translateGroupLabel(genderLabelKey)} ` : '';
 
     const result = buildTeamsFromPool(pool);
-    if (result.count < 1) return { teams: [], info: t('genderShort', { label: genderLabel }) };
+    if (result.count < 1) return { teams: [], infoCtx: { type: 'genericShort', genderLabelKey } };
     const excluded = players.length - pool.length;
-    const info = t('genderTeamsFormed', { label: genderLabel, n: result.count, size: teamSize })
-      + (result.leftover > 0 ? t('leftoverTeam', { n: result.leftover }) : '')
-      + (excluded > 0 ? t('oppositeExcluded', { n: excluded }) : '')
-      + '.';
-    return { teams: result.teams, info };
+    return {
+      teams: result.teams,
+      infoCtx: { type: 'generic', genderLabelKey, count: result.count, teamSize, leftover: result.leftover, excluded }
+    };
+  }
+
+  // rebuilds the "N teams formed" info line from raw numbers in the
+  // current language — lets applyLanguage() refresh it without re-forming
+  // teams (which would reshuffle random assignments) when switching languages.
+  function renderTeamsInfo(ctx) {
+    if (!ctx) return '';
+    if (ctx.type === 'error') return t(ctx.key);
+    if (ctx.type === 'mix') {
+      return `${t('genderModeMix')} ${ctx.pairCount}` + (ctx.leftover > 0 ? t('splitLeftover', { n: ctx.leftover }) : '.');
+    }
+    if (ctx.type === 'split') {
+      const parts = [];
+      if (ctx.mCount > 0) parts.push(t('splitMaleTeams', { n: ctx.mCount }) + (ctx.mLeftover > 0 ? t('splitLeftover', { n: ctx.mLeftover }) : ''));
+      else if (ctx.maleTotal > 0) parts.push(t('splitMaleShort', { n: ctx.maleTotal }));
+      if (ctx.fCount > 0) parts.push(t('splitFemaleTeams', { n: ctx.fCount }) + (ctx.fLeftover > 0 ? t('splitLeftover', { n: ctx.fLeftover }) : ''));
+      else if (ctx.femaleTotal > 0) parts.push(t('splitFemaleShort', { n: ctx.femaleTotal }));
+      return parts.join(', ') + '.';
+    }
+    if (ctx.type === 'genericShort') {
+      const genderLabel = ctx.genderLabelKey ? `${translateGroupLabel(ctx.genderLabelKey)} ` : '';
+      return t('genderShort', { label: genderLabel });
+    }
+    if (ctx.type === 'generic') {
+      const genderLabel = ctx.genderLabelKey ? `${translateGroupLabel(ctx.genderLabelKey)} ` : '';
+      return t('genderTeamsFormed', { label: genderLabel, n: ctx.count, size: ctx.teamSize })
+        + (ctx.leftover > 0 ? t('leftoverTeam', { n: ctx.leftover }) : '')
+        + (ctx.excluded > 0 ? t('oppositeExcluded', { n: ctx.excluded }) : '')
+        + '.';
+    }
+    return '';
   }
 
   function translateGroupLabel(label) {
@@ -1421,11 +1454,14 @@
     }
   }
 
+  let lastTeamsInfoCtx = null;
+
   function doMakeTeams() {
     const result = buildTeams();
     currentTeams = result.teams;
     currentTeamGroups = result.groups || null;
-    teamSizeInfo.textContent = result.info;
+    lastTeamsInfoCtx = result.infoCtx;
+    teamSizeInfo.textContent = renderTeamsInfo(lastTeamsInfoCtx);
     if (!currentTeams.length) {
       teamsOut.innerHTML = '';
       remakeTeamsBtn.classList.add('hidden');
