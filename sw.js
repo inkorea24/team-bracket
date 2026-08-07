@@ -1,4 +1,4 @@
-const CACHE_NAME = 'team-bracket-v2';
+const CACHE_NAME = 'team-bracket-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
