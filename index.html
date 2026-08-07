@@ -200,7 +200,7 @@
   #captureArea { background: var(--bg); padding: 4px; border-radius: 12px; }
 
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300;
     display: flex; align-items: center; justify-content: center; padding: 24px;
   }
   .modal-box {
@@ -886,7 +886,7 @@
       premiumOverlay.classList.add('hidden');
     } catch (err) {
       console.error(err);
-      await showAlert(t('premiumPurchaseFail'));
+     await showAlert(t('premiumPurchaseFail') + '\n[진단] ' + (err && err.message ? err.message : err));
     }
   }
 
