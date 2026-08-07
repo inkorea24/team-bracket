@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.inkorea24.teambracket",
+      "sha256_cert_fingerprints":
+        ["CC:EB:B3:80:E9:A5:E1:C2:00:6C:1F:48:71:B6:37:32:6C:80:D0:90:78:1D:00:42:C0:68:E5:18:FA:B4:C2:01"]
+    }
+  }
+]
