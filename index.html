@@ -228,6 +228,11 @@
     padding: 6px 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;
   }
   .premium-btn.is-premium { background: #166534; border-color: #16a34a; color: #bbf7d0; }
+  .premium-btn.trial-ended { animation: premiumPulse 1.6s ease-in-out infinite; }
+  @keyframes premiumPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.55); }
+    50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.25); }
+  }
 
   .premium-perks { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
   .premium-perks li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; }
@@ -521,7 +526,8 @@
       gfLine: '그랜드파이널:', resetLine: '리셋경기:', winLabel: ' → 승: {name}', wbLine: '- 승자조 -', lbLine: '- 패자조 -',
       premiumTitle: '⭐ 프리미엄', perkSlots: '저장 슬롯 9개 (무료는 3개)', perkHistory: '지난 대진표 기록 20개 저장 (무료는 3개)',
       perkWatermark: '공유 이미지에 워터마크 없음', premiumBuyBtn: '프리미엄 구매하기',
-      premiumBadgeOn: '⭐ 프리미엄', premiumBadgeTrial: '⭐ 체험 {n}/3', premiumBadgeOff: '⭐ 무료',
+      premiumBadgeOn: '⭐ 프리미엄', premiumBadgeTrial: '⭐ 체험 {n}/3', premiumBadgeOff: '⭐ 프리미엄 보기',
+      trialEndedNotice: '무료 체험이 끝났어요! 위쪽 ⭐ 버튼을 눌러 프리미엄 혜택을 계속 이용해보세요.',
       premiumStatusOn: '프리미엄 이용 중이에요. 감사합니다!', premiumStatusTrial: '지금은 무료 체험 중이에요 (대진표 만들기 {n}/3). 체험이 끝나면 아래 혜택이 잠겨요.',
       premiumStatusOff: '무료 버전이에요. 구매하면 아래 혜택이 계속 열려있어요.',
       premiumOnlyStore: '이 기능은 앱(Play 스토어에서 설치한 버전)에서만 결제할 수 있어요.',
@@ -601,7 +607,8 @@
       gfLine: 'Grand Final:', resetLine: 'Reset match:', winLabel: ' → won: {name}', wbLine: '- Winners Bracket -', lbLine: '- Losers Bracket -',
       premiumTitle: '⭐ Premium', perkSlots: '9 save slots (free: 3)', perkHistory: '20 saved past results (free: 3)',
       perkWatermark: 'No watermark on shared images', premiumBuyBtn: 'Buy Premium',
-      premiumBadgeOn: '⭐ Premium', premiumBadgeTrial: '⭐ Trial {n}/3', premiumBadgeOff: '⭐ Free',
+      premiumBadgeOn: '⭐ Premium', premiumBadgeTrial: '⭐ Trial {n}/3', premiumBadgeOff: '⭐ View Premium',
+      trialEndedNotice: "Your free trial has ended! Tap the ⭐ button above to keep the premium perks going.",
       premiumStatusOn: "You're on Premium. Thank you!", premiumStatusTrial: "You're on a free trial right now (Make Bracket {n}/3). These perks lock once the trial ends.",
       premiumStatusOff: "You're on the free version. Buy Premium to keep these perks unlocked for good.",
       premiumOnlyStore: 'This can only be purchased in the app (the version installed from the Play Store).',
@@ -811,11 +818,15 @@
   function maxSlots() { return isPremiumActive() ? 9 : 3; }
   function maxHistory() { return isPremiumActive() ? 20 : 3; }
 
-  function bumpTrialUse() {
+ function bumpTrialUse() {
     if (premiumPurchased) return;
     if (trialUses < TRIAL_LIMIT) {
       trialUses++;
       localStorage.setItem('tb_trial_uses', String(trialUses));
+      if (trialUses === TRIAL_LIMIT && localStorage.getItem('tb_trial_end_notice_shown') !== 'true') {
+        localStorage.setItem('tb_trial_end_notice_shown', 'true');
+        showAlert(t('trialEndedNotice'));
+      }
     }
     updatePremiumUI();
   }
@@ -826,20 +837,23 @@
   const premiumStatusLine = document.getElementById('premiumStatusLine');
   const premiumBuyBtn = document.getElementById('premiumBuyBtn');
 
-  function updatePremiumUI() {
+function updatePremiumUI() {
     if (premiumPurchased) {
       premiumBtn.textContent = t('premiumBadgeOn');
       premiumBtn.classList.add('is-premium');
+      premiumBtn.classList.remove('trial-ended');
       premiumStatusLine.textContent = t('premiumStatusOn');
       premiumBuyBtn.classList.add('hidden');
     } else if (trialUses < TRIAL_LIMIT) {
       premiumBtn.textContent = t('premiumBadgeTrial', { n: trialUses });
       premiumBtn.classList.remove('is-premium');
+      premiumBtn.classList.remove('trial-ended');
       premiumStatusLine.textContent = t('premiumStatusTrial', { n: trialUses });
       premiumBuyBtn.classList.remove('hidden');
     } else {
       premiumBtn.textContent = t('premiumBadgeOff');
       premiumBtn.classList.remove('is-premium');
+      premiumBtn.classList.add('trial-ended');
       premiumStatusLine.textContent = t('premiumStatusOff');
       premiumBuyBtn.classList.remove('hidden');
     }
