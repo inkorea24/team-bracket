@@ -865,20 +865,20 @@
     } catch (e) { /* ignore */ }
   }
 
-  async function purchasePremium() {
+async function purchasePremium() {
     const service = await getDigitalGoodsService();
     if (!service || typeof PaymentRequest === 'undefined') {
       await showAlert(t('premiumOnlyStore'));
       return;
     }
     try {
-      const request = new PaymentRequest(
-const details = await service.getDetails([PREMIUM_SKU]);
+      const details = await service.getDetails([PREMIUM_SKU]);
       if (!details || !details.length) {
         await showAlert('[진단] 스토어에서 상품 정보를 못 찾음 (getDetails 빈 결과)');
         return;
       }
       await showAlert('[진단] 상품 확인됨: ' + details[0].title + ' / ' + (details[0].price ? details[0].price.value + details[0].price.currency : '?'));
+      const request = new PaymentRequest(
         [{ supportedMethods: 'https://play.google.com/billing', data: { sku: PREMIUM_SKU } }],
         { total: { label: 'Total', amount: { currency: 'KRW', value: '990' } } }
       );
@@ -892,7 +892,7 @@ const details = await service.getDetails([PREMIUM_SKU]);
       premiumOverlay.classList.add('hidden');
     } catch (err) {
       console.error(err);
-     await showAlert(t('premiumPurchaseFail') + '\n[진단] ' + (err && err.message ? err.message : err));
+      await showAlert(t('premiumPurchaseFail') + '\n[진단] ' + (err && err.message ? err.message : err));
     }
   }
 
