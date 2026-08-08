@@ -873,6 +873,12 @@
     }
     try {
       const request = new PaymentRequest(
+const details = await service.getDetails([PREMIUM_SKU]);
+      if (!details || !details.length) {
+        await showAlert('[진단] 스토어에서 상품 정보를 못 찾음 (getDetails 빈 결과)');
+        return;
+      }
+      await showAlert('[진단] 상품 확인됨: ' + details[0].title + ' / ' + (details[0].price ? details[0].price.value + details[0].price.currency : '?'));
         [{ supportedMethods: 'https://play.google.com/billing', data: { sku: PREMIUM_SKU } }],
         { total: { label: 'Total', amount: { currency: 'KRW', value: '990' } } }
       );
